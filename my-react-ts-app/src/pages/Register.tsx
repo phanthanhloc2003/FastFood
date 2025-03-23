@@ -1,42 +1,26 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { motion } from 'framer-motion';
-import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
-
-interface RegisterFormData {
-  fullName: string;
-  email: string;
-  phone: string;
-  password: string;
-  confirmPassword: string;
-}
-
-const schema = yup.object({
-  fullName: yup.string().required('Vui lòng nhập họ tên'),
-  email: yup.string().email('Email không hợp lệ').required('Vui lòng nhập email'),
-  phone: yup.string()
-    .required('Vui lòng nhập số điện thoại')
-    .matches(/^[0-9]{10}$/, 'Số điện thoại không hợp lệ'),
-  password: yup.string()
-    .required('Vui lòng nhập mật khẩu')
-    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
-  confirmPassword: yup.string()
-    .required('Vui lòng xác nhận mật khẩu')
-    .oneOf([yup.ref('password')], 'Mật khẩu không khớp')
-}).required();
+import React from "react";
+import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { motion } from "framer-motion";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { schema } from "../schema/registerSchema";
+import { RegisterFormData } from "../interface/register";
 
 const Register: React.FC = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
-    resolver: yupResolver(schema)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: yupResolver(schema),
   });
 
   const onSubmit = (data: RegisterFormData) => {
-    console.log('Register attempt:', data);
+    console.log("Register attempt:", data);
   };
 
-  const inputClasses = "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-all duration-200 ease-in-out hover:border-orange-400";
+  const inputClasses =
+    "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-all duration-200 ease-in-out hover:border-orange-400";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
@@ -58,8 +42,11 @@ const Register: React.FC = () => {
             </h2>
           </motion.div>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Đã có tài khoản?{' '}
-            <Link to="/login" className="font-medium text-orange-600 hover:text-orange-500 transition-colors">
+            Đã có tài khoản?{" "}
+            <Link
+              to="/login"
+              className="font-medium text-orange-600 hover:text-orange-500 transition-colors"
+            >
               Đăng nhập ngay
             </Link>
           </p>
@@ -74,12 +61,15 @@ const Register: React.FC = () => {
         >
           <div className="rounded-md shadow-sm space-y-4">
             <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="fullName"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Họ và Tên
               </label>
               <div className="mt-1">
                 <input
-                  {...register('fullName')}
+                  {...register("fullName")}
                   type="text"
                   className={inputClasses}
                   placeholder="Nguyễn Văn A"
@@ -97,12 +87,15 @@ const Register: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email
               </label>
               <div className="mt-1">
                 <input
-                  {...register('email')}
+                  {...register("email")}
                   type="email"
                   className={inputClasses}
                   placeholder="example@email.com"
@@ -120,12 +113,15 @@ const Register: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Số Điện Thoại
               </label>
               <div className="mt-1">
                 <input
-                  {...register('phone')}
+                  {...register("phone")}
                   type="tel"
                   className={inputClasses}
                   placeholder="0123456789"
@@ -143,12 +139,15 @@ const Register: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Mật Khẩu
               </label>
               <div className="mt-1">
                 <input
-                  {...register('password')}
+                  {...register("password")}
                   type="password"
                   className={inputClasses}
                   placeholder="••••••••"
@@ -166,12 +165,15 @@ const Register: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Xác Nhận Mật Khẩu
               </label>
               <div className="mt-1">
                 <input
-                  {...register('confirmPassword')}
+                  {...register("confirmPassword")}
                   type="password"
                   className={inputClasses}
                   placeholder="••••••••"
@@ -208,4 +210,4 @@ const Register: React.FC = () => {
   );
 };
 
-export default Register; 
+export default Register;
