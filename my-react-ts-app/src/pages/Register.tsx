@@ -1,22 +1,36 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { schema } from "../schema/registerSchema";
+import { usersRegister } from "../services/auth";
 import { RegisterFormData } from "../interface/register";
 
 const Register: React.FC = () => {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: yupResolver(schema),
-  });
+    watch,
+  } = useForm<RegisterFormData>();
 
-  const onSubmit = (data: RegisterFormData) => {
-    console.log("Register attempt:", data);
+  const onSubmit = async (data: RegisterFormData) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const result = await usersRegister(data.fullName, data.email, data.phone, data.password);
+      if(result){
+        navigate("/login")
+      }
+    } catch (err: any) {
+      console.log(err)
+      setError(err.message || "Có lỗi xảy ra khi đăng ký");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const inputClasses =
@@ -69,7 +83,13 @@ const Register: React.FC = () => {
               </label>
               <div className="mt-1">
                 <input
-                  {...register("fullName")}
+                  {...register("fullName", {
+                    required: "Vui lòng nhập họ và tên",
+                    minLength: {
+                      value: 2,
+                      message: "Họ và tên phải có ít nhất 2 ký tự",
+                    },
+                  })}
                   type="text"
                   className={inputClasses}
                   placeholder="Nguyễn Văn A"
@@ -95,7 +115,13 @@ const Register: React.FC = () => {
               </label>
               <div className="mt-1">
                 <input
-                  {...register("email")}
+                  {...register("email", {
+                    required: "Vui lòng nhập email",
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: "Email không hợp lệ",
+                    },
+                  })}
                   type="email"
                   className={inputClasses}
                   placeholder="example@email.com"
@@ -121,7 +147,13 @@ const Register: React.FC = () => {
               </label>
               <div className="mt-1">
                 <input
-                  {...register("phone")}
+                  {...register("phone", {
+                    required: "Vui lòng nhập số điện thoại",
+                    pattern: {
+                      value: /^[0-9]{10}$/,
+                      message: "Số điện thoại không hợp lệ",
+                    },
+                  })}
                   type="tel"
                   className={inputClasses}
                   placeholder="0123456789"
@@ -147,7 +179,13 @@ const Register: React.FC = () => {
               </label>
               <div className="mt-1">
                 <input
-                  {...register("password")}
+                  {...register("password", {
+                    required: "Vui lòng nhập mật khẩu",
+                    minLength: {
+                      value: 6,
+                      message: "Mật khẩu phải có ít nhất 6 ký tự",
+                    },
+                  })}
                   type="password"
                   className={inputClasses}
                   placeholder="••••••••"
@@ -173,7 +211,11 @@ const Register: React.FC = () => {
               </label>
               <div className="mt-1">
                 <input
-                  {...register("confirmPassword")}
+                  {...register("confirmPassword", {
+                    required: "Vui lòng xác nhận mật khẩu",
+                    validate: (value) =>
+                      value === watch("password") || "Mật khẩu không khớp",
+                  })}
                   type="password"
                   className={inputClasses}
                   placeholder="••••••••"
@@ -191,17 +233,56 @@ const Register: React.FC = () => {
             </div>
           </div>
 
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-red-600 text-sm text-center"
+            >
+              {error}
+            </motion.div>
+          )}
+
           <div>
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white
+              disabled={isLoading}
+              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white
                        bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700
                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500
-                       transition-all duration-200 ease-in-out"
+                       transition-all duration-200 ease-in-out ${
+                         isLoading ? "opacity-75 cursor-not-allowed" : ""
+                       }`}
             >
-              Đăng Ký
+              {isLoading ? (
+                <div className="flex items-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Đang đăng ký...
+                </div>
+              ) : (
+                "Đăng Ký"
+              )}
             </motion.button>
           </div>
         </motion.form>
