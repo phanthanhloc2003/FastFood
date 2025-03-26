@@ -4,7 +4,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import UserMenu from './UserMenu';
-import SearchBar from './SearchBar';
 import CartIcon from '../Cart/CartIcon';
 
 const Header: React.FC = () => {
@@ -77,10 +76,7 @@ const Header: React.FC = () => {
               </Link>
             ))}
           </nav>
-
-          {/* Right side */}
           <div className="flex items-center space-x-6">
-            <SearchBar />
             <Link to="/cart" className="p-2">
               <CartIcon />
             </Link>
