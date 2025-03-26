@@ -5,12 +5,12 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import UserMenu from './UserMenu';
 import SearchBar from './SearchBar';
+import CartIcon from '../Cart/CartIcon';
 
 const Header: React.FC = () => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 0);
@@ -81,6 +81,9 @@ const Header: React.FC = () => {
           {/* Right side */}
           <div className="flex items-center space-x-6">
             <SearchBar />
+            <Link to="/cart" className="p-2">
+              <CartIcon />
+            </Link>
             {isAuthenticated ? (
               <UserMenu />
             ) : (

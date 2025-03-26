@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { Address } from '../../types/user';
+import { Address } from '../../types';
+
 
 interface AddressFormProps {
   onSubmit: (data: Omit<Address, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => void;

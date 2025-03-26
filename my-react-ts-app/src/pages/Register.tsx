@@ -26,7 +26,6 @@ const Register: React.FC = () => {
         navigate("/login")
       }
     } catch (err: any) {
-      console.log(err)
       setError(err.message || "Có lỗi xảy ra khi đăng ký");
     } finally {
       setIsLoading(false);

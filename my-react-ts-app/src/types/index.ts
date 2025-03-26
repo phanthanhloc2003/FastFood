@@ -1,9 +1,9 @@
 export interface User {
-  id: number;
+  id: string;
   fullName: string;
   email: string;
   phone: string;
-  avatar: string | null;
+  avatar?: string;
   role: string | null;
   address: string | null;
   dateOfBirth: string | null;
@@ -31,14 +31,18 @@ export interface Address {
   updatedAt: string;
 }
 
+export interface OrderItem {
+  productId: string;
+  name: string;
+  quantity: number;
+  price: number;
+}
+
 export interface Order {
   id: string;
   userId: string;
-  items: {
-    productId: string;
-    quantity: number;
-    price: number;
-  }[];
+  orderNumber: string;
+  items: OrderItem[];
   totalAmount: number;
   status: 'pending' | 'processing' | 'shipping' | 'completed' | 'cancelled';
   address: Address;
@@ -46,4 +50,17 @@ export interface Order {
   paymentStatus: 'pending' | 'paid' | 'failed';
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CartItem {
+  productId: string;
+  name: string;
+  quantity: number;
+  price: number;
+  image?: string;
+}
+
+export interface Cart {
+  items: CartItem[];
+  totalAmount: number;
 } 

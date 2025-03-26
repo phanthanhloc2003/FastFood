@@ -1,69 +1,69 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Product } from '../../types/product';
 import { TrashIcon } from '@heroicons/react/24/outline';
+import { CartItem as CartItemType } from '../../types';
+import { useDispatch } from 'react-redux';
+import { removeFromCart, updateQuantity } from '../../store/slices/cartSlice';
 
 interface CartItemProps {
-  product: Product;
-  quantity: number;
-  onUpdateQuantity: (id: number, quantity: number) => void;
-  onRemove: (id: number) => void;
+  item: CartItemType;
 }
 
-const CartItem: React.FC<CartItemProps> = ({
-  product,
-  quantity,
-  onUpdateQuantity,
-  onRemove,
-}) => {
+const CartItem: React.FC<CartItemProps> = ({ item }) => {
+  const dispatch = useDispatch();
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newQuantity = parseInt(e.target.value);
+    if (newQuantity > 0) {
+      dispatch(updateQuantity({ productId: item.productId, quantity: newQuantity }));
+    }
+  };
+
+  const handleRemove = () => {
+    dispatch(removeFromCart(item.productId));
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-md"
+      className="flex items-center space-x-4 p-4 border rounded-lg"
     >
-      <img
-        src={product.image}
-        alt={product.title}
-        className="w-24 h-24 object-cover rounded-lg"
-      />
+      <div className="w-20 h-20 rounded-lg overflow-hidden">
+        <img
+          src={item.image || '/placeholder.png'}
+          alt={item.name}
+          className="w-full h-full object-cover"
+        />
+      </div>
       <div className="flex-1">
-        <h3 className="text-lg font-semibold">{product.title}</h3>
-        <p className="text-gray-600">{product.description}</p>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-orange-600 font-bold">
-            {product.price.toLocaleString('vi-VN')}đ
-          </span>
-          <div className="flex items-center space-x-2">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => onUpdateQuantity(product.id, quantity - 1)}
-              className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200"
-            >
-              -
-            </motion.button>
-            <span className="w-8 text-center">{quantity}</span>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => onUpdateQuantity(product.id, quantity + 1)}
-              className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200"
-            >
-              +
-            </motion.button>
-          </div>
+        <h3 className="font-medium">{item.name}</h3>
+        <p className="text-primary-main font-bold">
+          {item.price.toLocaleString()}đ
+        </p>
+        <div className="flex items-center space-x-2 mt-2">
+          <select
+            value={item.quantity}
+            onChange={handleQuantityChange}
+            className="rounded border-gray-300 text-sm"
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+              <option key={num} value={num}>
+                {num}
+              </option>
+            ))}
+          </select>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={handleRemove}
+            className="text-red-500 hover:text-red-600"
+          >
+            <TrashIcon className="w-5 h-5" />
+          </motion.button>
         </div>
       </div>
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => onRemove(product.id)}
-        className="p-2 text-red-500 hover:text-red-700"
-      >
-        <TrashIcon className="w-6 h-6" />
-      </motion.button>
     </motion.div>
   );
 };

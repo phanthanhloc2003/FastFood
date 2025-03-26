@@ -29,8 +29,12 @@ const Login: React.FC = () => {
 
     try {
       const response = await login(formData.email, formData.password);
-      dispatch(setCredentials({ user: response.user, access_token: response.access_token }));
-      navigate('/');
+      dispatch(setCredentials({ user: response.user }));
+        
+    if (response?.access_token) {
+      localStorage.setItem("accessToken", response.access_token); 
+    }
+      navigate("/");
     } catch (err: any) {
       setError(err.response?.data?.message || "Có lỗi xảy ra khi đăng nhập");
     } finally {

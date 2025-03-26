@@ -3,8 +3,6 @@ import { useParams } from 'react-router-dom';
 import ProductGallery from '../components/Product/ProductGallery';
 import ProductInfo from '../components/Product/ProductInfo';
 import ProductReviews from '../components/Product/ProductReviews';
-
-// Dữ liệu mẫu (sau này sẽ được thay thế bằng API call)
 const productData = {
   id: 1,
   title: 'Burger Bò Phô Mai',
