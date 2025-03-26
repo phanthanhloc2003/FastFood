@@ -8,6 +8,7 @@ import ProductDetail from '../pages/ProductDetail';
 import Search from '../pages/Search';
 import Cart from '../pages/Cart';
 import Profile from '../pages/Profile';
+import Menu from '../pages/Menu';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -17,9 +18,10 @@ const AppRoutes: React.FC = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/product/:id" element={<ProductDetail />} />
       <Route path="/search" element={<Search />} />
-      <Route path="*" element={<NotFound />} />
+      <Route path="/menu" element={<Menu />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
