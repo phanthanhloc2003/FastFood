@@ -1,87 +1,98 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
+import { motion, AnimatePresence } from 'framer-motion';
 import { RootState } from '../store/store';
-import { clearCart } from '../store/slices/cartSlice';
-import CartItem from '../components/Cart/CartItem';
-import { useNavigate } from 'react-router-dom';
+import { removeFromCart, updateQuantity } from '../store/slices/cartSlice';
 
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { items } = useSelector((state: RootState) => state.cart);
+  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const totalAmount = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
-  const totalAmount = items.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
-
-  const handleCheckout = () => {
-    navigate('/checkout');
+  const handleQuantityChange = (id: string, newQuantity: number) => {
+    if (newQuantity < 1) {
+      dispatch(removeFromCart(id));
+    } else {
+      dispatch(updateQuantity({ id, quantity: newQuantity }));
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 mt-[50px]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-xl p-6"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Giỏ hàng</h1>
-            {items.length > 0 && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => dispatch(clearCart())}
-                className="text-red-500 hover:text-red-600"
+    <div className="container mx-auto px-4 py-8 mt-[50px]">
+      <h1 className="text-3xl font-bold mb-8">Giỏ hàng của bạn</h1>
+      
+      {cartItems.length === 0 ? (
+        <div className="text-center text-gray-500">
+          Giỏ hàng trống. Hãy thêm món ăn vào giỏ!
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6">
+          <AnimatePresence>
+            {cartItems.map((item) => (
+              <motion.div
+                key={item.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="flex items-center bg-white rounded-lg shadow-md p-4"
               >
-                Xóa tất cả
-              </motion.button>
-            )}
-          </div>
-
-          {items.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">Giỏ hàng trống</p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/')}
-                className="bg-primary-main text-white px-6 py-2 rounded-lg hover:bg-primary-dark"
-              >
-                Tiếp tục mua sắm
-              </motion.button>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {items.map((item) => (
-                <CartItem key={item.productId} item={item} />
-              ))}
-
-              <div className="border-t pt-6">
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-lg font-medium">Tổng cộng:</span>
-                  <span className="text-2xl font-bold text-primary-main">
-                    {totalAmount.toLocaleString()}đ
-                  </span>
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-24 h-24 object-cover rounded-md"
+                />
+                <div className="ml-6 flex-grow">
+                  <h3 className="text-lg font-semibold">{item.name}</h3>
+                  <p className="text-red-500 font-medium">
+                    {item.price.toLocaleString('vi-VN')}đ
+                  </p>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex items-center space-x-4">
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={handleCheckout}
-                    className="bg-primary-main text-white px-8 py-3 rounded-lg hover:bg-primary-dark"
+                    className="px-3 py-1 bg-gray-100 rounded-md"
+                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                   >
-                    Tiến hành đặt hàng
+                    -
+                  </motion.button>
+                  <span className="font-medium">{item.quantity}</span>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    className="px-3 py-1 bg-gray-100 rounded-md"
+                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                  >
+                    +
+                  </motion.button>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    className="text-red-500 hover:text-red-600"
+                    onClick={() => dispatch(removeFromCart(item.id))}
+                  >
+                    Xóa
                   </motion.button>
                 </div>
-              </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-lg font-semibold">Tổng cộng:</span>
+              <span className="text-2xl font-bold text-red-500">
+                {totalAmount.toLocaleString('vi-VN')}đ
+              </span>
             </div>
-          )}
-        </motion.div>
-      </div>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-red-500 text-white py-3 rounded-md hover:bg-red-600 transition-colors"
+            >
+              Thanh toán
+            </motion.button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

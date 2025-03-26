@@ -4,12 +4,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import UserMenu from './UserMenu';
-import CartIcon from '../Cart/CartIcon';
+import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 
 const Header: React.FC = () => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const totalQuantity = useSelector((state: RootState) => state.cart.totalQuantity);
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 0);
@@ -77,8 +79,21 @@ const Header: React.FC = () => {
             ))}
           </nav>
           <div className="flex items-center space-x-6">
-            <Link to="/cart" className="p-2">
-              <CartIcon />
+            <Link to="/cart" className="relative">
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <div className="text-gray-700 hover:text-red-500">
+                  <ShoppingCartIcon className="h-6 w-6" />
+                </div>
+                {totalQuantity > 0 && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center"
+                  >
+                    {totalQuantity}
+                  </motion.div>
+                )}
+              </motion.div>
             </Link>
             {isAuthenticated ? (
               <UserMenu />

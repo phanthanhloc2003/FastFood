@@ -53,11 +53,11 @@ export interface Order {
 }
 
 export interface CartItem {
-  productId: string;
+  id: string;
   name: string;
-  quantity: number;
   price: number;
-  image?: string;
+  quantity: number;
+  image: string;
 }
 
 export interface Cart {
