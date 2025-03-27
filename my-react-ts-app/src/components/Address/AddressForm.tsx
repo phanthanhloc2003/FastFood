@@ -1,269 +1,194 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
-import { Address } from '../../types';
-
+import { XMarkIcon } from '@heroicons/react/24/outline';
 
 interface AddressFormProps {
-  onSubmit: (data: Omit<Address, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => void;
-  onCancel: () => void;
-  initialData?: Address;
+  onSubmit: (address: {
+    fullName: string;
+    phone: string;
+    address: string;
+    city: string;
+    district: string;
+    ward: string;
+    isDefault: boolean;
+  }) => void;
+  onClose: () => void;
 }
 
-interface Province {
-  code: string;
-  name: string;
-}
-
-interface District {
-  code: string;
-  name: string;
-  province_code: string;
-}
-
-interface Ward {
-  code: string;
-  name: string;
-  district_code: string;
-}
-
-const AddressForm: React.FC<AddressFormProps> = ({
-  onSubmit,
-  onCancel,
-  initialData,
-}) => {
+const AddressForm: React.FC<AddressFormProps> = ({ onSubmit, onClose }) => {
   const [formData, setFormData] = useState({
-    fullName: initialData?.fullName || '',
-    phone: initialData?.phone || '',
-    address: initialData?.address || '',
-    city: initialData?.city || '',
-    district: initialData?.district || '',
-    ward: initialData?.ward || '',
-    isDefault: initialData?.isDefault || false,
+    fullName: '',
+    phone: '',
+    address: '',
+    city: '',
+    district: '',
+    ward: '',
+    isDefault: false,
   });
-
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    fetchProvinces();
-  }, []);
-
-  useEffect(() => {
-    if (formData.city) {
-      fetchDistricts(formData.city);
-    }
-  }, [formData.city]);
-
-  useEffect(() => {
-    if (formData.district) {
-      fetchWards(formData.district);
-    }
-  }, [formData.district]);
-
-  const fetchProvinces = async () => {
-    try {
-      const response = await axios.get(
-        'https://provinces.open-api.vn/api/p/'
-      );
-      setProvinces(response.data);
-    } catch (error) {
-      console.error('Error fetching provinces:', error);
-    }
-  };
-
-  const fetchDistricts = async (provinceCode: string) => {
-    try {
-      const response = await axios.get(
-        `https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`
-      );
-      setDistricts(response.data.districts);
-    } catch (error) {
-      console.error('Error fetching districts:', error);
-    }
-  };
-
-  const fetchWards = async (districtCode: string) => {
-    try {
-      const response = await axios.get(
-        `https://provinces.open-api.vn/api/d/${districtCode}?depth=2`
-      );
-      setWards(response.data.wards);
-    } catch (error) {
-      console.error('Error fetching wards:', error);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+    }));
+  };
+
   return (
-    <motion.form
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      onSubmit={handleSubmit}
-      className="space-y-6"
+      exit={{ opacity: 0, y: 20 }}
+      className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black bg-opacity-50"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Họ và tên
-          </label>
-          <input
-            type="text"
-            value={formData.fullName}
-            onChange={(e) =>
-              setFormData({ ...formData, fullName: e.target.value })
-            }
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Số điện thoại
-          </label>
-          <input
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Tỉnh/Thành phố
-          </label>
-          <select
-            value={formData.city}
-            onChange={(e) => {
-              setFormData({
-                ...formData,
-                city: e.target.value,
-                district: '',
-                ward: '',
-              });
-            }}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+      <motion.div
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+        className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+      >
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-xl font-semibold text-gray-900">Thêm địa chỉ mới</h2>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-500"
           >
-            <option value="">Chọn Tỉnh/Thành phố</option>
-            {provinces.map((province) => (
-              <option key={province.code} value={province.code}>
-                {province.name}
-              </option>
-            ))}
-          </select>
+            <XMarkIcon className="h-6 w-6" />
+          </motion.button>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Quận/Huyện
-          </label>
-          <select
-            value={formData.district}
-            onChange={(e) => {
-              setFormData({
-                ...formData,
-                district: e.target.value,
-                ward: '',
-              });
-            }}
-            required
-            disabled={!formData.city}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
-          >
-            <option value="">Chọn Quận/Huyện</option>
-            {districts.map((district) => (
-              <option key={district.code} value={district.code}>
-                {district.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Họ và tên
+            </label>
+            <motion.input
+              whileFocus={{ scale: 1.01 }}
+              type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Phường/Xã
-          </label>
-          <select
-            value={formData.ward}
-            onChange={(e) =>
-              setFormData({ ...formData, ward: e.target.value })
-            }
-            required
-            disabled={!formData.district}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
-          >
-            <option value="">Chọn Phường/Xã</option>
-            {wards.map((ward) => (
-              <option key={ward.code} value={ward.code}>
-                {ward.name}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Số điện thoại
+            </label>
+            <motion.input
+              whileFocus={{ scale: 1.01 }}
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+          </div>
 
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Địa chỉ cụ thể
-          </label>
-          <input
-            type="text"
-            value={formData.address}
-            onChange={(e) =>
-              setFormData({ ...formData, address: e.target.value })
-            }
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
-          />
-        </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Tỉnh/Thành phố
+            </label>
+            <motion.input
+              whileFocus={{ scale: 1.01 }}
+              type="text"
+              name="city"
+              value={formData.city}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+          </div>
 
-        <div className="md:col-span-2">
-          <label className="flex items-center">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Quận/Huyện
+            </label>
+            <motion.input
+              whileFocus={{ scale: 1.01 }}
+              type="text"
+              name="district"
+              value={formData.district}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Phường/Xã
+            </label>
+            <motion.input
+              whileFocus={{ scale: 1.01 }}
+              type="text"
+              name="ward"
+              value={formData.ward}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Địa chỉ cụ thể
+            </label>
+            <motion.input
+              whileFocus={{ scale: 1.01 }}
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
             <input
               type="checkbox"
+              name="isDefault"
               checked={formData.isDefault}
-              onChange={(e) =>
-                setFormData({ ...formData, isDefault: e.target.checked })
-              }
-              className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+              onChange={handleChange}
+              className="rounded text-red-500 focus:ring-red-500"
             />
-            <span className="ml-2 text-sm text-gray-700">
+            <label className="text-sm text-gray-700">
               Đặt làm địa chỉ mặc định
-            </span>
-          </label>
-        </div>
-      </div>
+            </label>
+          </div>
 
-      <div className="flex justify-end space-x-4">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-gray-700 hover:text-gray-900"
-        >
-          Hủy
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          type="submit"
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-        >
-          {initialData ? 'Cập nhật' : 'Thêm địa chỉ'}
-        </motion.button>
-      </div>
-    </motion.form>
+          <div className="flex space-x-4 pt-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors duration-200"
+            >
+              Lưu địa chỉ
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+            >
+              Hủy
+            </motion.button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
   );
 };
 

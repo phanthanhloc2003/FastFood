@@ -10,9 +10,11 @@ import OrderList from '../components/Profile/OrderList';
 import AddressList from '../components/Profile/AddressList';
 import ProfileSettings from '../components/Profile/ProfileSettings';
 import { Address, Order } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 const Profile: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -49,7 +51,7 @@ const Profile: React.FC = () => {
   };
 
   const handleAddAddress = () => {
-    // TODO: Implement add address
+    navigate("/address")
   };
 
   const handleEditAddress = (address: Address) => {
