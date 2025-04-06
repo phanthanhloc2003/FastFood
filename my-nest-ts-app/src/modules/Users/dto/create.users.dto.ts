@@ -26,11 +26,4 @@ export class CreateUserDto {
   @IsNotEmpty()
   @MinLength(6, { message: 'Password must be at least 6 characters long' })
   password: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @Matches(new RegExp('^.{6,}$'), {
-    message: 'Confirm password must match the password',
-  })
-  confirmPassword: string;
 }

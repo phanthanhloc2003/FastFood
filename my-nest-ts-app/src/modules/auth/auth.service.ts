@@ -4,26 +4,35 @@ import * as bcrypt from 'bcrypt';
 import { IUserNoPassWord } from '../Users/interfaces/user.interface';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../Users/entity/users.entity';
+
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
   ) {}
+
   async validateUser(email: string, pass: string): Promise<IUserNoPassWord> {
     try {
-      const findUser: User | null = await this.userService.findOne(email);
-      if (findUser && bcrypt.compareSync(pass, findUser?.password)) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password: _, ...userNoPassWord } = findUser;
-        return userNoPassWord;
+      const findUser = await this.userService.findOne(email);
+      if (!findUser) {
+        throw new HttpException(
+          'Email hoặc mật khẩu không chính xác',
+          HttpStatus.UNAUTHORIZED,
+        );
       }
-      throw new HttpException(
-        'Phone number or password is incorrect',
-        HttpStatus.BAD_REQUEST,
-      );
+
+      const isPasswordValid = await bcrypt.compare(pass, findUser.password);
+      if (!isPasswordValid) {
+        throw new HttpException(
+          'Email hoặc mật khẩu không chính xác',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      const { password: _, ...userNoPassWord } = findUser;
+      return userNoPassWord;
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
@@ -39,4 +48,4 @@ export class AuthService {
       user: user,
     };
   }
-}
+} 

@@ -1,4 +1,4 @@
-export interface IUserResponse {
+export interface IUserNoPassWord {
   id: number;
   fullName: string;
   email: string;

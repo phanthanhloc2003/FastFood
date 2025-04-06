@@ -26,6 +26,9 @@ export class User {
   @Column({ type: 'varchar', length: 500, nullable: true })
   avatar?: string;
 
+  @Column({ type: 'enum', enum: ['user', 'admin'], nullable: true })
+  role?: 'user' | 'admin';
+
   @Column({ type: 'varchar', length: 500, nullable: true })
   address?: string;
 
