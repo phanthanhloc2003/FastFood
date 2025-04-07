@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -15,6 +16,8 @@ import {
   User,
 } from 'src/common/decorators/public-router.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateAvatarDto } from './dto/update-avatar.dto';
+import { memoryStorage } from 'multer';
 
 @Controller('users')
 export class UserController {
@@ -38,16 +41,28 @@ export class UserController {
     return userWithoutPassword;
   }
 
-  @Put('user/avatar')
-  @UseInterceptors(FileInterceptor('file'))
+  @Put('avatar')
+  @UseInterceptors(FileInterceptor('avatar', {
+    storage: memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB
+    },
+  }))
   async updateAvatar(
     @User() user: IUserNoPassWord,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    if (!file) {
+      throw new BadRequestException('Vui lòng chọn file ảnh');
+    }
+
     const updatedUser = await this.userService.updateAvatar(user.email, file);
     return {
-      message: 'Avatar updated successfully',
-      avatarUrl: updatedUser.avatar,
+      statusCode: 200,
+      message: 'Cập nhật avatar thành công',
+      data: {
+        avatarUrl: updatedUser.avatar,
+      },
     };
   }
 }

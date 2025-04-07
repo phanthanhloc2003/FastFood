@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create.users.dto';
 import { IUserNoPassWord } from './interfaces/user.interface';
@@ -39,22 +39,40 @@ export class UserService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async updateAvatar(email: string, file: Express.Multer.File): Promise<User> {
-    // Upload ảnh lên Cloudinary
-    let uploadResult;
+  async updateAvatar(email: string, file: Express.Multer.File): Promise<IUserNoPassWord> {
+    if (!file) {
+      throw new BadRequestException('Không có file được tải lên');
+    }
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException('Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG hoặc GIF');
+    }
+    const maxSize = 5 * 1024 * 1024; 
+    if (file.size > maxSize) {
+      throw new BadRequestException('Kích thước file quá lớn. Tối đa 5MB');
+    }
+
+    const user = await this.findOne(email);
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
     try {
-      uploadResult = await this.cloudinaryService.uploadImage(file);
+      
+      if (user.avatar) {
+        const publicId = user.avatar.split('/').pop()?.split('.')[0];
+        if (publicId) {
+          await this.cloudinaryService.deleteImage(publicId);
+        }
+      }
+      const uploadResult = await this.cloudinaryService.uploadImage(file);
+      user.avatar = uploadResult.secure_url;
+      const updatedUser = await this.userRepository.save(user);
+    
+      const { password: _, ...userWithoutPassword } = updatedUser;
+      return userWithoutPassword;
     } catch (error) {
-      throw new Error('Error uploading avatar to Cloudinary');
+      throw new BadRequestException('Lỗi khi cập nhật avatar: ' + error.message);
     }
-
-    const userOne = await this.findOne(email);
-    if (!userOne) {
-      throw new Error('User not found');
-    }
-
-    // Cập nhật avatar URL
-    userOne.avatar = uploadResult.secure_url;
-    return this.userRepository.save(userOne);
   }
 }

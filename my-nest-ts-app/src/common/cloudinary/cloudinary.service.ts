@@ -6,12 +6,20 @@ import { v2 as cloudinary } from 'cloudinary';
 export class CloudinaryService {
   async uploadImage(file: Express.Multer.File) {
     try {
-      return await cloudinary.uploader.upload(file.path, {
-        folder: 'avatars', // Có thể thay đổi tên folder theo nhu cầu
+      return await cloudinary.uploader.upload(`data:${file.mimetype};base64,${file.buffer.toString('base64')}`, {
+        folder: 'avatars',
         resource_type: 'image',
       });
     } catch (error) {
-      throw new Error('Cloudinary upload failed');
+      throw new Error('Cloudinary upload failed: ' + error.message);
+    }
+  }
+
+  async deleteImage(publicId: string) {
+    try {
+      return await cloudinary.uploader.destroy(publicId);
+    } catch (error) {
+      throw new Error('Cloudinary delete failed: ' + error.message);
     }
   }
 }
