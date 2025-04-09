@@ -1,21 +1,72 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { RootState } from '../store/store';
-import { removeFromCart, updateQuantity, clearCart } from '../store/slices/cartSlice';
+import { removeFromCart, updateQuantity, clearCart, updateSize } from '../store/slices/cartSlice';
 import { TrashIcon, ShoppingBagIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
+
+interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  size: 'S' | 'M' | 'L';
+}
 
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const cartItems = useSelector((state: RootState) => state.cart.items);
-  const totalAmount = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  const totalAmount = cartItems.reduce((total, item) => {
+    const sizeMultiplier = item.size === 'S' ? 1 : item.size === 'M' ? 1.2 : 1.5;
+    return total + (item.price * item.quantity * sizeMultiplier);
+  }, 0);
+
+  const [deliveryType, setDeliveryType] = useState<'Dine-in' | 'Take-away' | 'Delivery'>('Delivery');
+  const [tableNumber, setTableNumber] = useState<number | null>(null);
 
   const handleQuantityChange = (id: string, newQuantity: number) => {
     if (newQuantity < 1) {
       dispatch(removeFromCart(id));
     } else {
       dispatch(updateQuantity({ id, quantity: newQuantity }));
+    }
+  };
+
+  const handleSizeChange = (id: string, newSize: 'S' | 'M' | 'L') => {
+    dispatch(updateSize({ id, size: newSize }));
+  };
+
+  const handleCheckout = async () => {
+    try {
+      const orderData = {
+        user_id: 1, // TODO: Lấy từ user đang đăng nhập
+        table_number: deliveryType === 'Dine-in' ? tableNumber : null,
+        address_id: deliveryType === 'Delivery' ? 1 : null, // TODO: Lấy từ địa chỉ của user
+        delivery_type: deliveryType,
+        status: 'Pending',
+        total_price: totalAmount,
+        items: cartItems
+      };
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (response.ok) {
+        dispatch(clearCart());
+        navigate('/checkout/success');
+      } else {
+        console.error('Lỗi khi tạo đơn hàng');
+      }
+    } catch (error) {
+      console.error('Lỗi khi tạo đơn hàng:', error);
     }
   };
 
@@ -91,9 +142,28 @@ const Cart: React.FC = () => {
                       />
                       <div className="ml-6 flex-1">
                         <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-                        <p className="text-red-600 font-medium mt-1">
-                          {item.price.toLocaleString('vi-VN')}đ
-                        </p>
+                        <div className="flex items-center space-x-4 mt-2">
+                          <div className="flex space-x-2">
+                            {(['S', 'M', 'L'] as const).map((size) => (
+                              <motion.button
+                                key={size}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handleSizeChange(item.id, size)}
+                                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                                  item.size === size
+                                    ? 'bg-red-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                              >
+                                {size}
+                              </motion.button>
+                            ))}
+                          </div>
+                          <p className="text-red-600 font-medium">
+                            {(item.price * (item.size === 'S' ? 1 : item.size === 'M' ? 1.2 : 1.5)).toLocaleString('vi-VN')}đ
+                          </p>
+                        </div>
                       </div>
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2 bg-gray-100 rounded-lg px-2">
@@ -135,6 +205,39 @@ const Cart: React.FC = () => {
             >
               <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Tổng đơn hàng</h2>
+                
+                {/* Chọn loại đơn hàng */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Loại đơn hàng
+                  </label>
+                  <select
+                    value={deliveryType}
+                    onChange={(e) => setDeliveryType(e.target.value as 'Dine-in' | 'Take-away' | 'Delivery')}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  >
+                    <option value="Dine-in">Tại quán</option>
+                    <option value="Take-away">Mang về</option>
+                    <option value="Delivery">Giao hàng</option>
+                  </select>
+                </div>
+
+                {/* Số bàn (chỉ hiển thị khi chọn Dine-in) */}
+                {deliveryType === 'Dine-in' && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Số bàn
+                    </label>
+                    <input
+                      type="number"
+                      value={tableNumber || ''}
+                      onChange={(e) => setTableNumber(Number(e.target.value))}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      placeholder="Nhập số bàn"
+                    />
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <div className="flex justify-between text-gray-600">
                     <span>Tạm tính</span>
@@ -153,6 +256,7 @@ const Cart: React.FC = () => {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    onClick={handleCheckout}
                     className="w-full bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors duration-200"
                   >
                     Thanh toán ngay

@@ -6,6 +6,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   image: string;
+  size: 'S' | 'M' | 'L';
 }
 
 interface CartState {
@@ -22,28 +23,31 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    addToCart: (state, action: PayloadAction<Omit<CartItem, 'quantity'>>) => {
-      const existingItem = state.items.find(item => item.id === action.payload.id);
+    addToCart: (state, action: PayloadAction<CartItem>) => {
+      const existingItem = state.items.find(item => item.id === action.payload.id && item.size === action.payload.size);
       if (existingItem) {
-        existingItem.quantity += 1;
+        existingItem.quantity += action.payload.quantity;
       } else {
-        state.items.push({ ...action.payload, quantity: 1 });
+        state.items.push(action.payload);
       }
-      state.totalQuantity += 1;
+      state.totalQuantity += action.payload.quantity;
     },
     removeFromCart: (state, action: PayloadAction<string>) => {
-      const existingItem = state.items.find(item => item.id === action.payload);
-      if (existingItem) {
-        state.totalQuantity -= existingItem.quantity;
-        state.items = state.items.filter(item => item.id !== action.payload);
-      }
+      state.items = state.items.filter(item => item.id !== action.payload);
+      state.totalQuantity -= 1;
     },
     updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
-      const existingItem = state.items.find(item => item.id === action.payload.id);
-      if (existingItem) {
-        const quantityDiff = action.payload.quantity - existingItem.quantity;
-        existingItem.quantity = action.payload.quantity;
+      const item = state.items.find(item => item.id === action.payload.id);
+      if (item) {
+        const quantityDiff = action.payload.quantity - item.quantity;
+        item.quantity = action.payload.quantity;
         state.totalQuantity += quantityDiff;
+      }
+    },
+    updateSize: (state, action: PayloadAction<{ id: string; size: 'S' | 'M' | 'L' }>) => {
+      const item = state.items.find(item => item.id === action.payload.id);
+      if (item) {
+        item.size = action.payload.size;
       }
     },
     clearCart: (state) => {
@@ -53,5 +57,5 @@ const cartSlice = createSlice({
   },
 });
 
-export const { addToCart, removeFromCart, updateQuantity, clearCart } = cartSlice.actions;
+export const { addToCart, removeFromCart, updateQuantity, updateSize, clearCart } = cartSlice.actions;
 export default cartSlice.reducer; 
