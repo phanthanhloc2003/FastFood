@@ -40,6 +40,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({
                   <input
                     type="file"
                     accept="image/*"
+                    name="avatar" 
                     onChange={onAvatarChange}
                     className="hidden"
                     id="avatar-upload"

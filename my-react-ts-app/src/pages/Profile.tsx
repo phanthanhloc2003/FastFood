@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
+import { updateUserAvatar } from '../store/slices/authSlice';
 import ProfileHeader from '../components/Profile/ProfileHeader';
 import AvatarUploadModal from '../components/Profile/AvatarUploadModal';
 import ProfileTabs from '../components/Profile/ProfileTabs';
@@ -11,9 +12,11 @@ import AddressList from '../components/Profile/AddressList';
 import ProfileSettings from '../components/Profile/ProfileSettings';
 import { Address, Order } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { updateAvatar } from '../services/user';
 
 const Profile: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -38,15 +41,31 @@ const Profile: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
-        setShowAvatarUpload(false);
-      };
-      reader.readAsDataURL(file);
+      try {
+        setIsLoading(true);
+        const formData = new FormData();
+        formData.append('avatar', file);
+  
+        const data = await updateAvatar(formData);
+  
+        // Cập nhật avatar trong Redux store
+        // dispatch(updateUserAvatar(data.avatarUrl));
+  
+        // Hiển thị preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setAvatarPreview(reader.result as string);
+          setShowAvatarUpload(false);
+        };
+        reader.readAsDataURL(file);
+      } catch (error: any) {
+        setError(error.message || 'Có lỗi xảy ra khi cập nhật avatar');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -55,11 +74,9 @@ const Profile: React.FC = () => {
   };
 
   const handleEditAddress = (address: Address) => {
-    // TODO: Implement edit address
   };
 
   const handleDeleteAddress = (address: Address) => {
-    // TODO: Implement delete address
   };
 
   return (

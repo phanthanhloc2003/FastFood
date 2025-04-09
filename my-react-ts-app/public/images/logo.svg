@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="60" cy="60" r="55" fill="url(#gradient)" />
+  
+  <!-- Burger Icon -->
+  <path d="M40 45H80" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <path d="M40 60H80" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <path d="M40 75H80" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Decorative Elements -->
+  <circle cx="85" cy="35" r="5" fill="#FFD700"/>
+  <circle cx="35" cy="85" r="5" fill="#FFD700"/>
+  
+  <!-- Gradient Definition -->
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF4B4B"/>
+      <stop offset="100%" stop-color="#FF6B6B"/>
+    </linearGradient>
+  </defs>
+</svg> 

@@ -33,21 +33,46 @@ const Header: React.FC = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* Logo */}
+       
           <Link to="/" className="flex items-center space-x-3">
             <motion.div
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, rotate: 360 }}
               whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
               className="flex items-center"
             >
-              <img
-                src="/logo.png"
-                alt="Logo"
-                className="h-12 w-auto"
-              />
-              <span className="ml-2 text-2xl font-bold bg-gradient-to-r from-primary-main to-secondary-main bg-clip-text text-transparent">
+              <div className="relative">
+                <motion.div
+                  className="w-12 h-12"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 1, ease: "linear", repeat: Infinity }}
+                >
+                  <img
+                    src="/images/logo.svg"
+                    alt="FastFood Logo"
+                    className="w-full h-full"
+                  />
+                </motion.div>
+                <motion.div
+                  className="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [1, 0.8, 1],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              </div>
+              <motion.span
+                className="ml-2 text-2xl font-bold bg-gradient-to-r from-primary-main to-secondary-main bg-clip-text text-transparent"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 FastFood
-              </span>
+              </motion.span>
             </motion.div>
           </Link>
 
