@@ -43,7 +43,8 @@ export class UserService {
     if (!file) {
       throw new BadRequestException('Không có file được tải lên');
     }
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif',  'image/heic',
+      'image/heif',];
     if (!allowedMimeTypes.includes(file.mimetype)) {
       throw new BadRequestException('Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG hoặc GIF');
     }
