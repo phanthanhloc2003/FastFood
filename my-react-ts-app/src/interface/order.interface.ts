@@ -1,3 +1,12 @@
+export interface OrderItem {
+    id: number;
+    name: string;
+    quantity: number;
+    price: number;
+    image?: string;
+    note?: string;
+}
+
 export interface Order {
     id: number;
     user_id: number;
@@ -8,6 +17,7 @@ export interface Order {
     total_price: number;
     created_at: string;
     updated_at: string;
+    items: OrderItem[];
     user?: {
         name: string;
         email: string;

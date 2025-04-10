@@ -9,6 +9,8 @@ import {
   PlusCircleIcon,
   Bars3Icon,
   XMarkIcon,
+  ChartBarIcon,
+  TagIcon,
 } from '@heroicons/react/24/outline';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/store';
@@ -22,10 +24,36 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const location = useLocation();
   const user = useSelector((state: RootState) => state.auth.user);
 
-
-  // if (!user || user.role !== 'admin') {
-  //   return <Navigate to="/login" replace />;
-  // }
+  if (user === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <motion.div
+          className="flex flex-col items-center space-y-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <motion.div
+            className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          />
+          <motion.p
+            className="text-gray-600 font-medium"
+            initial={{ y: 20 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            Đang tải...
+          </motion.p>
+        </motion.div>
+      </div>
+    );
+  }
+  
+  if (user.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
 
   const menuItems = [
     {
@@ -49,9 +77,19 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       icon: UsersIcon,
     },
     {
-      title: 'Đơn hàng & Thông báo',
-      path: '/admin/orders/status-logs',
+      title: 'Quản lý danh mục',
+      path: '/admin/categories',
+      icon: TagIcon,
+    },
+    {
+      title: 'Quản lý thông báo',
+      path: '/admin/NotificationsPage',
       icon: BellIcon,
+    },
+    {
+      title: 'Quản lý đơn hàng',
+      path: '/admin/orders/status-logs',
+      icon: ChartBarIcon,
     },
   ];
 
