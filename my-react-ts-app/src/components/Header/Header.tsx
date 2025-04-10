@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
-import UserMenu from './UserMenu';
 import { ShoppingCartIcon, Bars3Icon, XMarkIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import UserMenu from './UserMenu';
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -15,6 +15,7 @@ const Header: React.FC = () => {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const totalQuantity = useSelector((state: RootState) => state.cart.totalQuantity);
   const user = useSelector((state: RootState) => state.auth.user);
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -140,64 +141,30 @@ const Header: React.FC = () => {
                 onClick={handleProfileClick}
                 className="flex items-center space-x-2 focus:outline-none"
               >
-                {isAuthenticated && user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt="User Avatar"
-                    className="w-10 h-10 rounded-full object-cover border-2 border-orange-500"
-                  />
+                {isAuthenticated ? (
+                  <>
+                    {user?.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt="User Avatar"
+                        className="w-10 h-10 rounded-full object-cover border-2 border-orange-500"
+                      />
+                    ) : (
+                      <UserCircleIcon className="h-10 w-10 text-gray-700" />
+                    )}
+                    <span className="hidden md:block text-sm font-medium text-gray-700">
+                      {user?.fullName || 'Tài khoản'}
+                    </span>
+                  </>
                 ) : (
                   <UserCircleIcon className="h-10 w-10 text-gray-700" />
                 )}
-                {isAuthenticated && (
-                  <span className="hidden md:block text-sm font-medium text-gray-700">
-                    {user?.fullName || 'Tài khoản'}
-                  </span>
-                )}
               </motion.button>
 
-              {/* Profile Dropdown Menu */}
-              <AnimatePresence>
-                {isProfileMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50"
-                  >
-                    <Link
-                      to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsProfileMenuOpen(false)}
-                    >
-                      Thông tin cá nhân
-                    </Link>
-                    <Link
-                      to="/orders"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsProfileMenuOpen(false)}
-                    >
-                      Đơn hàng của tôi
-                    </Link>
-                    <Link
-                      to="/address"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsProfileMenuOpen(false)}
-                    >
-                      Địa chỉ
-                    </Link>
-                    <button
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                      onClick={() => {
-                        // Handle logout
-                        setIsProfileMenuOpen(false);
-                      }}
-                    >
-                      Đăng xuất
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <UserMenu 
+                isOpen={isProfileMenuOpen} 
+                onClose={() => setIsProfileMenuOpen(false)}
+              />
             </div>
 
             {/* Mobile Menu Button */}
