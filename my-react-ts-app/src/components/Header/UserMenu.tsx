@@ -70,7 +70,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ isOpen, onClose, className = '' }) 
             Thông tin cá nhân
           </Link>
 
-          {user ?  <Link
+          {user?.role === "admin"  ?  <Link
             to="/admin"
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             onClick={onClose}
