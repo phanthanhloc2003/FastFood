@@ -1,14 +1,19 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Order } from '../interface/order.interface';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import CancelOrderModal from './CancelOrderModal';
 
 interface OrderCardProps {
     order: Order;
     isAdmin?: boolean;
+    onCancelOrder?: (orderId: number, reason: string) => void;
 }
 
-const OrderCard = ({ order, isAdmin = false }: OrderCardProps) => {
+const OrderCard = ({ order, isAdmin = false, onCancelOrder }: OrderCardProps) => {
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'Completed':
@@ -20,6 +25,13 @@ const OrderCard = ({ order, isAdmin = false }: OrderCardProps) => {
             default:
                 return 'bg-gray-100 text-gray-800';
         }
+    };
+
+    const handleCancelOrder = (reason: string) => {
+        if (onCancelOrder) {
+            onCancelOrder(order.id, reason);
+        }
+        setIsCancelModalOpen(false);
     };
 
     return (
@@ -68,7 +80,22 @@ const OrderCard = ({ order, isAdmin = false }: OrderCardProps) => {
                         currency: 'VND'
                     })}
                 </p>
+                {order.status === 'Pending' && !isAdmin && (
+                    <button
+                        onClick={() => setIsCancelModalOpen(true)}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                    >
+                        Hủy đơn hàng
+                    </button>
+                )}
             </div>
+
+            <CancelOrderModal
+                isOpen={isCancelModalOpen}
+                onClose={() => setIsCancelModalOpen(false)}
+                onConfirm={handleCancelOrder}
+                orderId={order.id}
+            />
         </motion.div>
     );
 };

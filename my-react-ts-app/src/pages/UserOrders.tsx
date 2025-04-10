@@ -2,14 +2,32 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import OrderCard from '../components/OrderCard';
 import { mockOrders } from '../data/mockOrders';
+import { Order } from '../interface/order.interface';
 
 const UserOrders = () => {
     const [filter, setFilter] = useState<string>('all');
+    const [orders, setOrders] = useState<Order[]>(mockOrders);
 
-    const filteredOrders = mockOrders.filter(order => {
+    const filteredOrders = orders.filter(order => {
         if (filter === 'all') return true;
         return order.status === filter;
     });
+
+    const handleCancelOrder = (orderId: number, reason: string) => {
+        setOrders(orders.map(order => {
+            if (order.id === orderId) {
+                return {
+                    ...order,
+                    status: 'Cancelled',
+                    updated_at: new Date().toISOString()
+                };
+            }
+            return order;
+        }));
+
+        // TODO: Gọi API để cập nhật trạng thái đơn hàng
+        console.log(`Hủy đơn hàng #${orderId} với lý do: ${reason}`);
+    };
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -64,8 +82,12 @@ const UserOrders = () => {
                 transition={{ delay: 0.2 }}
                 className="grid gap-6"
             >
-                {filteredOrders.map((order, index) => (
-                    <OrderCard key={order.id} order={order} />
+                {filteredOrders.map((order) => (
+                    <OrderCard 
+                        key={order.id} 
+                        order={order} 
+                        onCancelOrder={handleCancelOrder}
+                    />
                 ))}
             </motion.div>
         </div>

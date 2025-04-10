@@ -16,7 +16,7 @@ import CategoryManagement from "../pages/Admin/CategoryManagement";
 import Layout from "../components/Layout/Layout";
 import ProductDetail from "../pages/ProductDetail";
 import UserOrders from "../pages/UserOrders";
-import AdminOrders from "../pages/AdminOrders";
+import OrderStatusLogsPage from "../pages/Admin/OrderStatusLogsPage";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -54,7 +54,7 @@ const AppRoutes: React.FC = () => {
         <Route path="products" element={<ProductManagement />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="categories" element={<CategoryManagement />} />
-        <Route path="orders" element={<AdminOrders />} />
+        <Route path="orders/status-logs" element={<OrderStatusLogsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

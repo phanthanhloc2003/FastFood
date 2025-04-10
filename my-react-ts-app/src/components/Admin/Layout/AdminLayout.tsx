@@ -50,7 +50,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     },
     {
       title: 'Đơn hàng & Thông báo',
-      path: '/admin/orders',
+      path: '/admin/orders/status-logs',
       icon: BellIcon,
     },
   ];
