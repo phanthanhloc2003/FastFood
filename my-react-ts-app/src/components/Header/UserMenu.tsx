@@ -69,6 +69,20 @@ const UserMenu: React.FC<UserMenuProps> = ({ isOpen, onClose, className = '' }) 
           >
             Thông tin cá nhân
           </Link>
+
+          {user ?  <Link
+            to="/admin"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={onClose}
+          >
+           Quảng lý hệ thống
+          </Link> :  <Link
+            to="/orders"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={onClose}
+          >
+            Đơn hàng của tôi
+          </Link>}
           <Link
             to="/orders"
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
