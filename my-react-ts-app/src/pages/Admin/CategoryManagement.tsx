@@ -20,6 +20,9 @@ const CategoryManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showNotification, setShowNotification] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [notificationMessage, setNotificationMessage] = useState('');
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<CategoryFormData>();
 
@@ -29,7 +32,7 @@ const CategoryManagement: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await categoriesApi.getAl();
+      const response = await categoriesApi.getAll();
       setCategories(response);
     } catch (error) {
       console.error('Lỗi khi tải danh mục:', error);
@@ -53,20 +56,27 @@ const CategoryManagement: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
-      try {
-        const response = await fetch(`/api/categories/${id}`, {
-          method: 'DELETE',
-        });
+    const category = categories.find(c => c.id === id);
+    if (category) {
+      setCategoryToDelete(category);
+      setDeleteModalOpen(true);
+    }
+  };
 
-        if (response.ok) {
-          console.log('Xóa thành công');
-          fetchCategories();
-        } else {
-          console.error('Có lỗi xảy ra');
-        }
+  const confirmDelete = async () => {
+    if (categoryToDelete) {
+      try {
+        await categoriesApi.delete(categoryToDelete.id);
+        fetchCategories();
+        setDeleteModalOpen(false);
+        setNotificationMessage('Xóa danh mục thành công!');
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
       } catch (error) {
         console.error('Lỗi khi xóa danh mục:', error);
+        setNotificationMessage('Có lỗi xảy ra khi xóa danh mục!');
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
       }
     }
   };
@@ -106,11 +116,52 @@ const CategoryManagement: React.FC = () => {
               <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span>Tạo danh mục thành công!</span>
+              <span>{notificationMessage}</span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {deleteModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl p-8 w-full max-w-md"
+            >
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Xác nhận xóa</h2>
+              <p className="text-gray-600 mb-6">
+                Bạn có chắc chắn muốn xóa danh mục "{categoryToDelete?.name}"?
+              </p>
+              <div className="flex justify-end space-x-4">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setDeleteModalOpen(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                >
+                  Hủy
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={confirmDelete}
+                  className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700"
+                >
+                  Xóa
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Quản Lý Danh Mục</h1>
         <motion.button

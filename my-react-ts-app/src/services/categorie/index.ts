@@ -7,8 +7,12 @@ export const categoriesApi = {
     return response.data;
   },
 
-  getAl: async () => {
+  getAll: async () => {
     const response = await api.get("/categories");
+    return response.data;
+  },
+  delete: async (id:number) => {
+    const response = await api.delete(`/categories/${id}`);
     return response.data;
   },
 };
