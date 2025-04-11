@@ -22,10 +22,13 @@ async function bootstrap() {
   );
   app.useStaticAssets(join(__dirname, '..', 'uploads')); 
   app.enableCors({
-    origin: ['http://localhost:3000','http://localhost:3001','https://fastfood-1.onrender.com'], 
+    origin: process.env.NODE_ENV === 'production' 
+      ? ['https://fastfood-1.onrender.com'] 
+      : ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type, Accept, Authorization',
+    allowedHeaders: 'Content-Type, Accept, Authorization, X-Requested-With',
+    exposedHeaders: 'Set-Cookie',
   });
   await app.listen(process.env.PORT ?? 3000);
 }
