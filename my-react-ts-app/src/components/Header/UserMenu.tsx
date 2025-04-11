@@ -84,13 +84,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ isOpen, onClose, className = '' }) 
             Đơn hàng của tôi
           </Link>}
           <Link
-            to="/orders"
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            onClick={onClose}
-          >
-            Đơn hàng của tôi
-          </Link>
-          <Link
             to="/address"
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             onClick={onClose}
