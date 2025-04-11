@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
+import { da } from 'date-fns/locale';
+import { categoriesApi } from '../../services/categorie';
 
 interface Category {
   id: number;
@@ -27,9 +29,8 @@ const CategoryManagement: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
-      const data = await response.json();
-      setCategories(data);
+      const response = await categoriesApi.getAl();
+      setCategories(response);
     } catch (error) {
       console.error('Lỗi khi tải danh mục:', error);
     } finally {
@@ -39,27 +40,9 @@ const CategoryManagement: React.FC = () => {
 
   const onSubmit = async (data: CategoryFormData) => {
     try {
-      const url = editingId 
-        ? `/api/categories/${editingId}`
-        : '/api/categories';
       
-      const method = editingId ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      console.log("data", data)
 
-      if (response.ok) {
-        console.log(editingId ? 'Cập nhật thành công' : 'Thêm mới thành công');
-        fetchCategories();
-        handleCloseModal();
-      } else {
-        console.error('Có lỗi xảy ra');
-      }
     } catch (error) {
       console.error('Lỗi khi lưu danh mục:', error);
     }
