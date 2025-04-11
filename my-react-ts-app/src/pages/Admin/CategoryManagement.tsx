@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
-import { da } from 'date-fns/locale';
 import { categoriesApi } from '../../services/categorie';
 
 interface Category {
@@ -10,7 +9,7 @@ interface Category {
   description: string;
 }
 
-interface CategoryFormData {
+export interface CategoryFormData {
   name: string;
   description: string;
 }
@@ -20,6 +19,7 @@ const CategoryManagement: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [showNotification, setShowNotification] = useState(false);
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<CategoryFormData>();
 
@@ -40,9 +40,13 @@ const CategoryManagement: React.FC = () => {
 
   const onSubmit = async (data: CategoryFormData) => {
     try {
-      
-      console.log("data", data)
-
+      const response = await categoriesApi.create(data);
+      if (response) {
+        fetchCategories();
+        handleCloseModal();
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+      }
     } catch (error) {
       console.error('Lỗi khi lưu danh mục:', error);
     }
@@ -90,6 +94,23 @@ const CategoryManagement: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <AnimatePresence>
+        {showNotification && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50"
+          >
+            <div className="flex items-center">
+              <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Tạo danh mục thành công!</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Quản Lý Danh Mục</h1>
         <motion.button
