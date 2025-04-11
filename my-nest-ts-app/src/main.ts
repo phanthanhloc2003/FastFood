@@ -21,7 +21,7 @@ async function bootstrap() {
   );
   app.useStaticAssets(join(__dirname, '..', 'uploads')); // Bây giờ hoạt động đúng
   app.enableCors({
-    origin: ['http://localhost:3000','http://localhost:3001','https://fastfood-1.onrender.com/'], 
+    origin: ['http://localhost:3000','http://localhost:3001','https://fastfood-1.onrender.com'], 
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Accept, Authorization',
