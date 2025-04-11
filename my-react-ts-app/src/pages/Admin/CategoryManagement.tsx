@@ -43,15 +43,30 @@ const CategoryManagement: React.FC = () => {
 
   const onSubmit = async (data: CategoryFormData) => {
     try {
-      const response = await categoriesApi.create(data);
-      if (response) {
-        fetchCategories();
-        handleCloseModal();
-        setShowNotification(true);
-        setTimeout(() => setShowNotification(false), 3000);
+      if (editingId) {
+        const response = await categoriesApi.update(editingId, data);
+        if (response) {
+          fetchCategories();
+          handleCloseModal();
+          setNotificationMessage('Cập nhật danh mục thành công!');
+          setShowNotification(true);
+          setTimeout(() => setShowNotification(false), 3000);
+        }
+      } else {
+        const response = await categoriesApi.create(data);
+        if (response) {
+          fetchCategories();
+          handleCloseModal();
+          setNotificationMessage('Tạo danh mục thành công!');
+          setShowNotification(true);
+          setTimeout(() => setShowNotification(false), 3000);
+        }
       }
     } catch (error) {
       console.error('Lỗi khi lưu danh mục:', error);
+      setNotificationMessage('Có lỗi xảy ra khi lưu danh mục!');
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 3000);
     }
   };
 

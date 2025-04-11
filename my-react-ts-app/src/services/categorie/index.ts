@@ -15,4 +15,8 @@ export const categoriesApi = {
     const response = await api.delete(`/categories/${id}`);
     return response.data;
   },
+  update: async (id: number, data: CategoryFormData) => {
+    const response = await api.patch(`/categories/${id}`, data);
+    return response.data;
+  }
 };
