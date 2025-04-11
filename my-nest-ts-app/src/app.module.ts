@@ -8,6 +8,7 @@ import { CloudinaryModule } from './common/cloudinary/cloudinary.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     CloudinaryModule,
     UsersControllerModule,
     AuthControllerModule,
+    CategoriesModule,
   ],
   providers: [
     {
