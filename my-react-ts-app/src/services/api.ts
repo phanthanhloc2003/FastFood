@@ -1,6 +1,8 @@
 import axios from 'axios';
+import { refreshToken } from './auth';
 
 const API_URL = 'https://fastfood-vkr0.onrender.com/api/v1/'; 
+// const API_URL = 'http://localhost:3000/api/v1/'; 
 
 const api = axios.create({
   baseURL: API_URL,                
@@ -22,9 +24,31 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("API Error:", error.response?.data || error.message);
+  (response) => {
+    return response;
+  },
+  async (error) => {
+    const { config, response } = error;
+    if (config.url !== "/login" && response && response.status === 401) {
+      const originalRequest = config;
+      if (!originalRequest._retry) {
+        originalRequest._retry = true;
+        try {
+          const newAccessToken = await refreshToken();
+          const { accessToken } = newAccessToken;
+          if (accessToken) {
+            localStorage.setItem("token", accessToken);
+            originalRequest.headers[
+              "Authorization"
+            ] = `Bearer ${accessToken}`;
+            return axios(originalRequest);
+          }
+        } catch (refreshError) {
+          console.error("Refresh token failed:", refreshError);
+        }
+      }
+    }
+    console.error("API Error:", response ? response.data : error.message);
     return Promise.reject(error);
   }
 );

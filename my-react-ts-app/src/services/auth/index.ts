@@ -40,3 +40,12 @@ export const usersRegister = async (
     throw error.response?.data || { message: "failure register" };
   }
 };
+export const refreshToken = async () => {
+  try {
+    const response = await api.get("/auth/refresh-token");
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "Refresh token failed" };
+  }
+}
+
