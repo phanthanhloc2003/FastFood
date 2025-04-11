@@ -3,13 +3,15 @@ import {
   Get,
   Post,
   Req,
-  Request,
   Res,
   UseGuards,
   Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { PublicRouter, User } from 'src/common/decorators/public-router.decorator';
+import {
+  PublicRouter,
+  User,
+} from 'src/common/decorators/public-router.decorator';
 import { LocalAuthGuard } from 'src/common/guards/local-auth.guard';
 import { Request as RequestCookie } from 'supertest';
 import { AuthService } from './ auth.service';
@@ -24,7 +26,10 @@ export class AuthController {
   @Post('login')
   @PublicRouter()
   @UseGuards(LocalAuthGuard)
-  async login(@User() user: IUserNoPassWord, @Res({ passthrough: true }) response: Response) {
+  async login(
+    @User() user: IUserNoPassWord,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     try {
       this.logger.log(`Login attempt for user: ${user.email}`);
       const result = await this.authService.login(user, response);
