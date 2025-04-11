@@ -3,6 +3,7 @@ export interface IUserNoPassWord {
   fullName: string;
   email: string;
   phone: string;
+  role?:string;
   avatar?: string;
   address?: string;
   dateOfBirth?: Date;

@@ -12,7 +12,6 @@ async function bootstrap() {
     type: VersioningType.URI,
     defaultVersion: ['1', '2'],
   });
-  app.useGlobalGuards(new JwtAuthGuard(new Reflector()));
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
