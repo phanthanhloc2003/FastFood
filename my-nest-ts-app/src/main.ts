@@ -6,7 +6,7 @@ import { join } from 'path';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule); 
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.use(cookieParser());
   app.setGlobalPrefix('api');
   app.enableVersioning({
@@ -20,11 +20,13 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-  app.useStaticAssets(join(__dirname, '..', 'uploads')); 
+  app.useStaticAssets(join(__dirname, '..', 'uploads'));
   app.enableCors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? ['https://fastfood-1.onrender.com'] 
-      : ['http://localhost:3000', 'http://localhost:3001'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://fastfood-1.onrender.com',
+    ],
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Accept, Authorization, X-Requested-With',

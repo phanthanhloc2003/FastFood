@@ -57,7 +57,7 @@ export class AuthService {
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // Chỉ sử dụng secure trong production
-        sameSite: 'strict',
+        sameSite: 'none',   
         path: '/',
       });
 
