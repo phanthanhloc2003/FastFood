@@ -1,59 +1,146 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import MenuItem from '../components/Menu/MenuItem';
+import ProductCard from '../components/ProductCard';
 import MenuCategories from '../components/Menu/MenuCategories';
-
-// Mock data - sau này sẽ được thay thế bằng API call
-const menuItems = [
-  {
-    id: '1',
-    name: 'Burger Bò Phô Mai',
-    description: 'Burger bò với phô mai tan chảy, rau xanh tươi và sốt đặc biệt',
-    price: 89000,
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd',
-    category: 'Burger'
-  },
-  {
-    id: '2',
-    name: 'Pizza Hải Sản',
-    description: 'Pizza với hải sản tươi ngon, phô mai Mozzarella và sốt cà chua',
-    price: 159000,
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38',
-    category: 'Pizza'
-  },
-  {
-    id: '3',
-    name: 'Gà Rán Sốt Cay',
-    description: 'Gà rán giòn với sốt cay đặc biệt của nhà hàng',
-    price: 79000,
-    image: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58',
-    category: 'Gà Rán'
-  },
-  // Thêm nhiều món ăn khác...
-];
-
-const categories = ['Tất cả', 'Burger', 'Pizza', 'Gà Rán', 'Món Phụ', 'Đồ Uống'];
+import AddToCartAnimation from '../components/AddToCartAnimation';
+import { Product, Category } from '../types/product';
+import { categoriesApi } from '../services/categorie';
+import { productApi } from '../services/product';
 
 const Menu: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState('Tất cả');
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddToCart, setShowAddToCart] = useState(false);
+  const [addedProduct, setAddedProduct] = useState<Product | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  
 
-  const filteredItems = menuItems.filter((item) => {
-    const matchesCategory = selectedCategory === 'Tất cả' || item.category === selectedCategory;
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await categoriesApi.getAll();
+        setCategories(data);
+      } catch (err) {
+        setError('Không thể tải danh mục. Vui lòng thử lại sau.');
+        console.error('Error fetching categories:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await productApi.getAll();
+        setProducts(data);
+      } catch (err) {
+        setError('Không thể tải sản phẩm. Vui lòng thử lại sau.');
+        console.error('Error fetching products:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  const filteredItems = products.filter((item) => {
+    const matchesCategory = !selectedCategory || item.categoryId.id === selectedCategory.id;
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const handleAddToCart = (product: Product, size: any) => {
+    setAddedProduct(product);
+    setShowAddToCart(true);
+    setTimeout(() => {
+      setShowAddToCart(false);
+      setAddedProduct(null);
+    }, 3000);
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 mt-[50px] flex justify-center items-center min-h-[300px]">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full"
+        />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 mt-[50px] flex flex-col items-center min-h-[300px]">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-red-600 text-center mb-4"
+        >
+          <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p>{error}</p>
+        </motion.div>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => window.location.reload()}
+          className="px-6 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+        >
+          Thử lại
+        </motion.button>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 mt-[50px]">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 100,
+          damping: 20
+        }}
       >
-        <h1 className="text-4xl font-bold text-center mb-8">Thực Đơn</h1>
+        <motion.h1 
+          className="text-4xl font-bold text-center mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 100,
+            damping: 20,
+            delay: 0.2
+          }}
+        >
+          Thực Đơn
+        </motion.h1>
         
-        <div className="mb-8">
+        <motion.div 
+          className="mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 100,
+            damping: 20,
+            delay: 0.3
+          }}
+        >
           <input
             type="text"
             placeholder="Tìm kiếm món ăn..."
@@ -61,33 +148,80 @@ const Menu: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-        </div>
+        </motion.div>
 
-        <MenuCategories
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 100,
+            damping: 20,
+            delay: 0.4
+          }}
+        >
+          <MenuCategories
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
+        </motion.div>
 
         <motion.div
           layout
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           <AnimatePresence>
-            {filteredItems.map((item) => (
+            {filteredItems.map((item, index) => (
               <motion.div
                 key={item.id}
                 layout
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0, 
+                  scale: 1,
+                  transition: {
+                    type: "spring",
+                    stiffness: 200,
+                    damping: 20,
+                    delay: index * 0.1
+                  }
+                }}
+                exit={{ 
+                  opacity: 0, 
+                  y: -50, 
+                  scale: 0.8,
+                  transition: {
+                    type: "spring",
+                    stiffness: 200,
+                    damping: 20
+                  }
+                }}
+                whileHover={{ 
+                  y: -10,
+                  transition: {
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 10
+                  }
+                }}
               >
-                <MenuItem {...item} />
+                <ProductCard 
+                  product={item} 
+                  onAddToCart={handleAddToCart}
+                  index={index}
+                />
               </motion.div>
             ))}
           </AnimatePresence>
         </motion.div>
+
+        <AddToCartAnimation
+          isVisible={showAddToCart}
+          productName={addedProduct?.name || ''}
+          onComplete={() => setShowAddToCart(false)}
+        />
       </motion.div>
     </div>
   );

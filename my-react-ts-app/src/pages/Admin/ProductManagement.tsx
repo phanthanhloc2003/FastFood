@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useForm } from 'react-hook-form';
-import { categoriesApi } from '../../services/categorie';
-import { productApi } from '../../services/product';
-import Notification from '../../components/Notification';
-import { Product } from '../../types/product';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useForm } from "react-hook-form";
+import { categoriesApi } from "../../services/categorie";
+import { productApi } from "../../services/product";
+import Notification from "../../components/Notification";
+import { Product } from "../../types/product";
 
 interface Category {
   id: number;
@@ -24,7 +24,7 @@ export interface ProductFormData {
 interface NotificationState {
   show: boolean;
   message: string;
-  type: 'success' | 'error';
+  type: "success" | "error";
 }
 
 const ProductManagement: React.FC = () => {
@@ -34,15 +34,23 @@ const ProductManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [sizeInputs, setSizeInputs] = useState<{ size: string; price: number }[]>([]);
+  const [sizeInputs, setSizeInputs] = useState<
+    { size: string; price: number }[]
+  >([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState<NotificationState>({
     show: false,
-    message: '',
-    type: 'success'
+    message: "",
+    type: "success",
   });
 
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<ProductFormData>();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<ProductFormData>();
 
   useEffect(() => {
     fetchProducts();
@@ -54,31 +62,31 @@ const ProductManagement: React.FC = () => {
       const data = await productApi.getAll();
       setProducts(data);
     } catch (error) {
-      console.error('Lỗi khi tải sản phẩm:', error);
+      console.error("Lỗi khi tải sản phẩm:", error);
     } finally {
       setIsLoading(false);
     }
   };
-console.log("product", products)
+  console.log("product", products);
   const fetchCategories = async () => {
     try {
       const data = await categoriesApi.getAll();
       setCategories(data);
     } catch (error) {
-      console.error('Lỗi khi tải danh mục:', error);
+      console.error("Lỗi khi tải danh mục:", error);
     }
   };
 
-  const showNotification = (message: string, type: 'success' | 'error') => {
+  const showNotification = (message: string, type: "success" | "error") => {
     setNotification({
       show: true,
       message,
-      type
+      type,
     });
   };
 
   const hideNotification = () => {
-    setNotification(prev => ({ ...prev, show: false }));
+    setNotification((prev) => ({ ...prev, show: false }));
   };
 
   const onSubmit = async (data: ProductFormData) => {
@@ -86,57 +94,59 @@ console.log("product", products)
     try {
       const productData = {
         ...data,
-        ingredients: typeof data.ingredients === 'string' 
-          ? data.ingredients.split(',').map(item => item.trim())
-          : data.ingredients,
+        ingredients: Array.isArray(data.ingredients) 
+          ? data.ingredients 
+          : data.ingredients.split(',').map(item => item.trim()),
         images: imageUrls,
-        sizes: sizeInputs
+        sizes: sizeInputs,
       };
 
       if (editingId) {
         await productApi.update(editingId, productData);
-        showNotification('Cập nhật sản phẩm thành công!', 'success');
+        showNotification("Cập nhật sản phẩm thành công!", "success");
       } else {
         await productApi.create(productData);
-        showNotification('Thêm sản phẩm thành công!', 'success');
+        showNotification("Thêm sản phẩm thành công!", "success");
       }
-      
+
       fetchProducts();
       handleCloseModal();
     } catch (error) {
-      showNotification('Có lỗi xảy ra, vui lòng thử lại!', 'error');
+      showNotification("Có lỗi xảy ra, vui lòng thử lại!", "error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+    if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
       try {
         const response = await fetch(`/api/products/${id}`, {
-          method: 'DELETE',
+          method: "DELETE",
         });
 
         if (response.ok) {
-          console.log('Xóa thành công');
+          console.log("Xóa thành công");
           fetchProducts();
         } else {
-          console.error('Có lỗi xảy ra');
+          console.error("Có lỗi xảy ra");
         }
       } catch (error) {
-        console.error('Lỗi khi xóa sản phẩm:', error);
+        console.error("Lỗi khi xóa sản phẩm:", error);
       }
     }
   };
 
   const handleEdit = (product: Product) => {
-    setValue('categoryId', product.categoryId);
-    setValue('name', product.name);
-    setValue('description', product.description);
-    setValue('ingredients', product.ingredients);
-    setValue('price', product.price);
-    setImageUrls(product.images.map(img => img.url));
-    setSizeInputs(product.sizes.map(size => ({ size: size.size, price: size.price })));
+    setValue("categoryId", product.categoryId.id);
+    setValue("name", product.name);
+    setValue("description", product.description);
+    setValue("ingredients", product.ingredients);
+    setValue("price", product.price);
+    setImageUrls(product.images.map((img) => img.url));
+    setSizeInputs(
+      product.sizes.map((size) => ({ size: size.size, price: size.price }))
+    );
     setEditingId(product.id);
     setIsModalOpen(true);
   };
@@ -150,7 +160,7 @@ console.log("product", products)
   };
 
   const addImageUrl = () => {
-    setImageUrls([...imageUrls, '']);
+    setImageUrls([...imageUrls, ""]);
   };
 
   const removeImageUrl = (index: number) => {
@@ -164,14 +174,18 @@ console.log("product", products)
   };
 
   const addSizeInput = () => {
-    setSizeInputs([...sizeInputs, { size: '', price: 0 }]);
+    setSizeInputs([...sizeInputs, { size: "", price: 0 }]);
   };
 
   const removeSizeInput = (index: number) => {
     setSizeInputs(sizeInputs.filter((_, i) => i !== index));
   };
 
-  const updateSizeInput = (index: number, field: 'size' | 'price', value: string | number) => {
+  const updateSizeInput = (
+    index: number,
+    field: "size" | "price",
+    value: string | number
+  ) => {
     const newSizes = [...sizeInputs];
     newSizes[index] = { ...newSizes[index], [field]: value };
     setSizeInputs(newSizes);
@@ -239,10 +253,17 @@ console.log("product", products)
                   {product.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {categories.find(c => c.id === product.categoryId)?.name || 'Không có'}
+
+                  {
+                     product.categoryId.name
+                  }
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {product.price.toLocaleString('vi-VN')}đ
+                  {new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                    minimumFractionDigits: 0
+                  }).format(product.price)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <div className="flex items-center">
@@ -283,7 +304,7 @@ console.log("product", products)
             className="bg-white rounded-2xl p-8 w-full max-w-2xl overflow-y-auto max-h-screen"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              {editingId ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm'}
+              {editingId ? "Sửa Sản Phẩm" : "Thêm Sản Phẩm"}
             </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
@@ -291,11 +312,11 @@ console.log("product", products)
                   Danh Mục
                 </label>
                 <select
-                  {...register('categoryId')}
+                  {...register("categoryId")}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 >
                   <option value="">Chọn danh mục</option>
-                  {categories.map(category => (
+                  {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
                     </option>
@@ -307,11 +328,15 @@ console.log("product", products)
                   Tên Sản Phẩm
                 </label>
                 <input
-                  {...register('name', { required: 'Vui lòng nhập tên sản phẩm' })}
+                  {...register("name", {
+                    required: "Vui lòng nhập tên sản phẩm",
+                  })}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
                 {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.name.message}
+                  </p>
                 )}
               </div>
               <div>
@@ -319,7 +344,7 @@ console.log("product", products)
                   Mô Tả
                 </label>
                 <textarea
-                  {...register('description')}
+                  {...register("description")}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   rows={3}
                 />
@@ -329,10 +354,13 @@ console.log("product", products)
                   Nguyên Liệu (phân cách bằng dấu phẩy)
                 </label>
                 <textarea
-                  {...register('ingredients')}
+                  {...register("ingredients")}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   rows={3}
                   placeholder="Nhập nguyên liệu, phân cách bằng dấu phẩy"
+                  defaultValue={editingId ? (Array.isArray(products.find(p => p.id === editingId)?.ingredients) 
+                    ? products.find(p => p.id === editingId)?.ingredients.join(', ') 
+                    : products.find(p => p.id === editingId)?.ingredients || '') : ''}
                 />
               </div>
               <div>
@@ -342,14 +370,16 @@ console.log("product", products)
                 <input
                   type="number"
                   step="0.01"
-                  {...register('price', { 
-                    required: 'Vui lòng nhập giá',
-                    min: { value: 0, message: 'Giá phải lớn hơn 0' }
+                  {...register("price", {
+                    required: "Vui lòng nhập giá",
+                    min: { value: 0, message: "Giá phải lớn hơn 0" },
                   })}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
                 {errors.price && (
-                  <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.price.message}
+                  </p>
                 )}
               </div>
 
@@ -386,8 +416,17 @@ console.log("product", products)
                         onClick={() => removeImageUrl(index)}
                         className="text-red-600 hover:text-red-700 p-2"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       </motion.button>
                     </div>
@@ -399,7 +438,7 @@ console.log("product", products)
                             alt={`Preview ${index + 1}`}
                             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                             onError={(e) => {
-                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.style.display = "none";
                             }}
                           />
                           <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
@@ -435,7 +474,9 @@ console.log("product", products)
                     <input
                       type="text"
                       value={size.size}
-                      onChange={(e) => updateSizeInput(index, 'size', e.target.value)}
+                      onChange={(e) =>
+                        updateSizeInput(index, "size", e.target.value)
+                      }
                       placeholder="Tên kích thước"
                       className="w-1/3 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     />
@@ -443,7 +484,13 @@ console.log("product", products)
                       type="number"
                       step="0.01"
                       value={size.price}
-                      onChange={(e) => updateSizeInput(index, 'price', parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        updateSizeInput(
+                          index,
+                          "price",
+                          parseFloat(e.target.value)
+                        )
+                      }
                       placeholder="Giá"
                       className="w-1/3 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     />
@@ -483,8 +530,10 @@ console.log("product", products)
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                       Đang xử lý...
                     </div>
+                  ) : editingId ? (
+                    "Cập Nhật"
                   ) : (
-                    editingId ? 'Cập Nhật' : 'Thêm Mới'
+                    "Thêm Mới"
                   )}
                 </motion.button>
               </div>
@@ -504,4 +553,4 @@ console.log("product", products)
   );
 };
 
-export default ProductManagement; 
+export default ProductManagement;

@@ -1,7 +1,41 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import ProductCard from '../components/ProductCard';
+import { Product } from '../types/product';
+import { productApi } from '../services/product';
 
 const Home: React.FC = () => {
+  const [products, setProducts] = React.useState<Product[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await productApi.getAll();
+        setProducts(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const handleAddToCart = (product: Product) => {
+    // TODO: Implement add to cart functionality
+    console.log('Adding to cart:', product);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -51,31 +85,13 @@ const Home: React.FC = () => {
           </motion.h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[1, 2, 3, 4].map((item) => (
-              <motion.div
-                key={item}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: item * 0.1 }}
-                viewport={{ once: true }}
-                className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
-              >
-                <img
-                  src={`https://source.unsplash.com/random/400x300?food&${item}`}
-                  alt={`Product ${item}`}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-2">Món Ăn {item}</h3>
-                  <p className="text-gray-600 mb-4">Mô tả ngắn về món ăn</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-red-600 font-bold">89.000đ</span>
-                    <button className="bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition-colors">
-                      Thêm vào giỏ
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
+            {products.map((product, index) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={handleAddToCart}
+                index={index}
+              />
             ))}
           </div>
         </div>

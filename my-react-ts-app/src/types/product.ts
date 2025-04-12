@@ -1,6 +1,6 @@
 export interface Product {
   id: number;
-  categoryId: number | null;
+  categoryId:Category ;
   name: string;
   description: string;
   ingredients: string[];
@@ -13,13 +13,18 @@ export interface Product {
   sizes: ProductSize[];
 }
 
-interface ProductImage {
+export interface Category {
+  id: number;
+  name: string;
+}
+
+export interface ProductImage {
   id: number;
   product_id: number;
   url: string;
 }
 
-interface ProductSize {
+export interface ProductSize {
   id: number;
   product_id: number;
   size: string;
