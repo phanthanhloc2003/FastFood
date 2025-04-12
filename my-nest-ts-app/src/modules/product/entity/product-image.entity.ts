@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Product } from './ product.entity';
+import { Product } from './product.entity';
 
 
 @Entity('product_images')
@@ -13,5 +13,5 @@ export class ProductImage {
   product: Product;
 
   @Column('text')
-  image_url: string;
+  url: string;
 }

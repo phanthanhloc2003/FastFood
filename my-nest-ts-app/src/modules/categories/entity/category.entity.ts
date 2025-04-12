@@ -1,5 +1,5 @@
 // src/categories/category.entity.ts
-import { Product } from 'src/modules/product/entity/ product.entity';
+import { Product } from 'src/modules/product/entity/product.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('categories')
