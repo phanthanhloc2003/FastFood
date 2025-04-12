@@ -5,6 +5,7 @@ import { IUserNoPassWord } from './interfaces/user.interface';
 import * as bcrypt from 'bcrypt';
 import { User } from './entity/users.entity';
 import { CloudinaryService } from '../../common/cloudinary/cloudinary.service'; // Import CloudinaryService
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -75,5 +76,35 @@ export class UserService {
     } catch (error) {
       throw new BadRequestException('Lỗi khi cập nhật avatar: ' + error.message);
     }
+  }
+
+  async findAll(user: IUserNoPassWord): Promise<IUserNoPassWord[]> {
+    const users = await this.userRepository.find();
+    return users
+      .filter(u => u.id !== user.id)
+      .map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<IUserNoPassWord> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
+    Object.assign(user, updateUserDto);
+    const updatedUser = await this.userRepository.save(user);
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
+  }
+
+  async remove(id: number): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+    await this.userRepository.remove(user);
   }
 }

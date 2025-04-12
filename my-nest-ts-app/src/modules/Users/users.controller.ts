@@ -7,6 +7,9 @@ import {
   Put,
   UploadedFile,
   UseInterceptors,
+  Param,
+  UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create.users.dto';
 import { UserService } from './users.service';
@@ -18,6 +21,10 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateAvatarDto } from './dto/update-avatar.dto';
 import { memoryStorage } from 'multer';
+import { AuthGuard } from '@nestjs/passport';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/enum/role.enum';
 
 @Controller('users')
 export class UserController {
@@ -64,5 +71,23 @@ export class UserController {
         avatarUrl: updatedUser.avatar,
       },
     };
+  }
+
+  @Get()
+ @Roles(Role.Admin)
+  async findAll(  @User() user: IUserNoPassWord,): Promise<IUserNoPassWord[]> {
+    return this.userService.findAll(user);
+  }
+
+  @Put(':id')
+ @Roles(Role.Admin)
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<IUserNoPassWord> {
+    return this.userService.update(+id, updateUserDto);
+  }
+
+  @Delete(':id')
+ @Roles(Role.Admin)
+  async remove(@Param('id') id: string): Promise<void> {
+    return this.userService.remove(+id);
   }
 }
