@@ -1,9 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User } from '../../types';
+import { IUser } from '../../types';
+
 
 interface ProfileInfoProps {
-  user: User | null;
+  user: IUser | null;
 }
 
 const ProfileInfo: React.FC<ProfileInfoProps> = ({ user }) => {

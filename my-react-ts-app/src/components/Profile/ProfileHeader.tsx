@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { UserCircleIcon, CameraIcon } from '@heroicons/react/24/outline';
-import { User } from '../../types';
+import { IUser } from '../../types';
 
 interface ProfileHeaderProps {
-  user: User | null;
+  user: IUser | null;
   avatarPreview: string | null;
   onAvatarClick: () => void;
 }

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
-import { updateUserAvatar } from '../store/slices/authSlice';
 import ProfileHeader from '../components/Profile/ProfileHeader';
 import AvatarUploadModal from '../components/Profile/AvatarUploadModal';
 import ProfileTabs from '../components/Profile/ProfileTabs';
@@ -12,7 +11,7 @@ import AddressList from '../components/Profile/AddressList';
 import ProfileSettings from '../components/Profile/ProfileSettings';
 import { Address, Order } from '../types';
 import { useNavigate } from 'react-router-dom';
-import { updateAvatar } from '../services/user';
+import usersApi from '../services/user';
 
 const Profile: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
@@ -49,7 +48,7 @@ const Profile: React.FC = () => {
         const formData = new FormData();
         formData.append('avatar', file);
   
-        const data = await updateAvatar(formData);
+        const data = await usersApi.updateAvatar(formData);
   
         // Cập nhật avatar trong Redux store
         // dispatch(updateUserAvatar(data.avatarUrl));

@@ -1,8 +1,9 @@
-import { User } from "../../types";
+
+import { IUser } from "../../types";
 import api from "../api";
 interface LoginResponse {
   access_token: string;
-  user: User;
+  user: IUser;
 }
 export const login = async (
   email: string,

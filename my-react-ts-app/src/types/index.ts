@@ -1,5 +1,5 @@
-export interface User {
-  id: string;
+export interface IUser {
+  id: number;
   fullName: string;
   email: string;
   phone: string;
@@ -14,7 +14,7 @@ export interface User {
 
 export interface LoginResponse {
   access_token: string;
-  user: User;
+  user: IUser;
 }
 
 export interface Address {

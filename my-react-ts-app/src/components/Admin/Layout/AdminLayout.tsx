@@ -62,11 +62,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       icon: HomeIcon,
     },
     {
-      title: 'Quản lý sản phẩm',
-      path: '/admin/products',
-      icon: CubeIcon,
-    },
-    {
       title: 'Thêm sản phẩm',
       path: '/admin/products/add',
       icon: PlusCircleIcon,
