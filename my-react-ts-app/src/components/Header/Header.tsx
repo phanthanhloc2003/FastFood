@@ -13,7 +13,9 @@ const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-  const totalQuantity = useSelector((state: RootState) => state.cart.totalQuantity);
+  const totalQuantity = useSelector((state: RootState) => 
+    state.cart.items.reduce((total, item) => total + item.quantity, 0)
+  );
   const user = useSelector((state: RootState) => state.auth.user);
 
 

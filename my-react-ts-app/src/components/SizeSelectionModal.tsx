@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Product, ProductSize } from '../types/product';
+import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 interface SizeSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   product: Product;
-  onAddToCart: (product: Product, size: ProductSize) => void;
+  onAddToCart: (product: Product, size: ProductSize, quantity: number) => void;
 }
 
 const SizeSelectionModal: React.FC<SizeSelectionModalProps> = ({
@@ -16,6 +17,7 @@ const SizeSelectionModal: React.FC<SizeSelectionModalProps> = ({
   onAddToCart,
 }) => {
   const [selectedSize, setSelectedSize] = React.useState<ProductSize | null>(null);
+  const [quantity, setQuantity] = React.useState(1);
 
   const formatPrice = (price: string | number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -27,8 +29,14 @@ const SizeSelectionModal: React.FC<SizeSelectionModalProps> = ({
 
   const handleAddToCart = () => {
     if (selectedSize) {
-      onAddToCart(product, selectedSize);
+      onAddToCart(product, selectedSize, quantity);
       onClose();
+    }
+  };
+
+  const handleQuantityChange = (newQuantity: number) => {
+    if (newQuantity > 0) {
+      setQuantity(newQuantity);
     }
   };
 
@@ -89,6 +97,27 @@ const SizeSelectionModal: React.FC<SizeSelectionModalProps> = ({
                     <div className="text-sm">{formatPrice(size.price)}</div>
                   </button>
                 ))}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700 font-medium">Số lượng:</span>
+                <div className="flex items-center space-x-2 bg-gray-100 rounded-lg px-2">
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => handleQuantityChange(quantity - 1)}
+                    className="p-1 hover:text-red-600 transition-colors"
+                  >
+                    <MinusIcon className="h-4 w-4" />
+                  </motion.button>
+                  <span className="w-8 text-center font-medium">{quantity}</span>
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => handleQuantityChange(quantity + 1)}
+                    className="p-1 hover:text-red-600 transition-colors"
+                  >
+                    <PlusIcon className="h-4 w-4" />
+                  </motion.button>
+                </div>
               </div>
 
               <button

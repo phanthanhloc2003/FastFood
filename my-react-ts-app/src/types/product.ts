@@ -20,13 +20,11 @@ export interface Category {
 
 export interface ProductImage {
   id: number;
-  product_id: number;
   url: string;
 }
 
 export interface ProductSize {
   id: number;
-  product_id: number;
   size: string;
   price: number;
 }

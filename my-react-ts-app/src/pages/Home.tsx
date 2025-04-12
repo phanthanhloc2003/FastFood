@@ -1,10 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
-import { Product } from '../types/product';
+import { Product, ProductSize } from '../types/product';
 import { productApi } from '../services/product';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../store/slices/cartSlice';
 
 const Home: React.FC = () => {
+  const dispatch = useDispatch();
   const [products, setProducts] = React.useState<Product[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
@@ -23,9 +26,21 @@ const Home: React.FC = () => {
     fetchProducts();
   }, []);
 
-  const handleAddToCart = (product: Product) => {
-    // TODO: Implement add to cart functionality
-    console.log('Adding to cart:', product);
+  const handleAddToCart = (product: Product, size: ProductSize, quantity: number) => {
+
+    const itemToAdd = {
+      product,
+      quantity: 1,
+      size: size.size,          
+      sizeId: size.id,          
+      price: size.price, 
+    };
+    dispatch(addToCart(itemToAdd));
+
+
+    console.log("product" , product );
+    console.log("size" , size );
+    console.log("quantity" , quantity );
   };
 
   if (isLoading) {

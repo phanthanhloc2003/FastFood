@@ -1,3 +1,5 @@
+import { Product } from './product';
+
 export interface IUser {
   id: number;
   fullName: string;
@@ -53,11 +55,9 @@ export interface Order {
 }
 
 export interface CartItem {
-  id: string;
-  name: string;
-  price: number;
+  product: Product;
   quantity: number;
-  image: string;
+  size: string;
 }
 
 export interface Cart {

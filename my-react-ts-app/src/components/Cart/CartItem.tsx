@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrashIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { CartItem as CartItemType } from '../../types';
 import { useDispatch } from 'react-redux';
 import { removeFromCart, updateQuantity } from '../../store/slices/cartSlice';
@@ -12,15 +12,14 @@ interface CartItemProps {
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const dispatch = useDispatch();
 
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newQuantity = parseInt(e.target.value);
+  const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity > 0) {
-      dispatch(updateQuantity({ id: item.id, quantity: newQuantity }));
+      dispatch(updateQuantity({ productId: item.product.id, size: item.size, quantity: newQuantity }));
     }
   };
 
   const handleRemove = () => {
-    dispatch(removeFromCart(item.id));
+    dispatch(removeFromCart({ productId: item.product.id, size: item.size }));
   };
 
   return (
@@ -32,28 +31,34 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
     >
       <div className="w-20 h-20 rounded-lg overflow-hidden">
         <img
-          src={item.image || '/placeholder.png'}
-          alt={item.name}
+          src={item.product.images[0]?.url || '/placeholder.png'}
+          alt={item.product.name}
           className="w-full h-full object-cover"
         />
       </div>
       <div className="flex-1">
-        <h3 className="font-medium">{item.name}</h3>
+        <h3 className="font-medium">{item.product.name}</h3>
         <p className="text-primary-main font-bold">
-          {item.price.toLocaleString()}đ
+          {item.product.price.toLocaleString()}đ
         </p>
         <div className="flex items-center space-x-2 mt-2">
-          <select
-            value={item.quantity}
-            onChange={handleQuantityChange}
-            className="rounded border-gray-300 text-sm"
-          >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-              <option key={num} value={num}>
-                {num}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center space-x-2 bg-gray-100 rounded-lg px-2">
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => handleQuantityChange(item.quantity - 1)}
+              className="p-1 hover:text-red-600 transition-colors"
+            >
+              <MinusIcon className="h-4 w-4" />
+            </motion.button>
+            <span className="w-8 text-center font-medium">{item.quantity}</span>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => handleQuantityChange(item.quantity + 1)}
+              className="p-1 hover:text-red-600 transition-colors"
+            >
+              <PlusIcon className="h-4 w-4" />
+            </motion.button>
+          </div>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}

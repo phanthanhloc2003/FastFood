@@ -1,12 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Product } from '../types/product';
+import { Product, ProductSize } from '../types/product';
 import SizeSelectionModal from './SizeSelectionModal';
 import { useNavigate } from 'react-router-dom';
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart?: (product: Product, size: any) => void;
+  onAddToCart?: (product: Product, size: ProductSize, quantity: number) => void;
   index: number;
 }
 
@@ -22,8 +22,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, index }
     }).format(Number(price));
   };
 
-  const handleAddToCart = (product: Product, size: any) => {
-    onAddToCart?.(product, size);
+  const handleAddToCart = (product: Product, size: ProductSize, quantity: number) => {
+    onAddToCart?.(product, size,quantity);
   };
 
   const handleViewDetail = () => {

@@ -3,51 +3,47 @@ import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { RootState } from '../store/store';
-import { removeFromCart, updateQuantity, clearCart, updateSize } from '../store/slices/cartSlice';
+import { removeFromCart, updateQuantity, clearCart, updateItemSize } from '../store/slices/cartSlice';
 import { TrashIcon, ShoppingBagIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-  size: 'S' | 'M' | 'L';
-}
-
+import { Product, ProductSize } from '../types/product';
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const cartItems = useSelector((state: RootState) => state.cart.items);
-  const totalAmount = cartItems.reduce((total, item) => {
-    const sizeMultiplier = item.size === 'S' ? 1 : item.size === 'M' ? 1.2 : 1.5;
-    return total + (item.price * item.quantity * sizeMultiplier);
-  }, 0);
+  const result = useSelector((state: RootState) => state.cart);
 
   const [deliveryType, setDeliveryType] = useState<'Dine-in' | 'Take-away' | 'Delivery'>('Delivery');
   const [tableNumber, setTableNumber] = useState<number | null>(null);
 
-  const handleQuantityChange = (id: string, newQuantity: number) => {
+  const handleQuantityChange = (productId: number, size: string, newQuantity: number) => {
     if (newQuantity < 1) {
-      dispatch(removeFromCart(id));
+      dispatch(removeFromCart({ productId, size }));
     } else {
-      dispatch(updateQuantity({ id, quantity: newQuantity }));
+      dispatch(updateQuantity({ productId, size, quantity: newQuantity }));
     }
   };
 
-  const handleSizeChange = (id: string, newSize: 'S' | 'M' | 'L') => {
-    dispatch(updateSize({ id, size: newSize }));
+  const handleSizeChange = (product:Product, currentSize: string, newSize:ProductSize) => {
+     dispatch(updateItemSize({
+      productId:product.id,
+      oldSize: currentSize,
+      newSize: newSize.size,         
+      newSizeId:newSize.id,        
+      newPrice: +newSize.price
+    }));
   };
+
+  
 
   const handleCheckout = async () => {
     try {
       const orderData = {
-        user_id: 1, // TODO: Lấy từ user đang đăng nhập
+        user_id: 1,
         table_number: deliveryType === 'Dine-in' ? tableNumber : null,
-        address_id: deliveryType === 'Delivery' ? 1 : null, // TODO: Lấy từ địa chỉ của user
+        address_id: deliveryType === 'Delivery' ? 1 : null, 
         delivery_type: deliveryType,
         status: 'Pending',
-        total_price: totalAmount,
+        total_price: 1,
         items: cartItems
       };
 
@@ -85,16 +81,20 @@ const Cart: React.FC = () => {
     visible: { opacity: 1, y: 0 }
   };
 
+  // const calculateTotal = (items: CartItem[]): number => {
+  //   return items.reduce((total: number, item: CartItem) => total + item.product.price * item.quantity, 0);
+  // };
+
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 pt-16 pb-12">
+      <div className="max-w-7xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-center mb-6"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Giỏ hàng của bạn</h1>
-          <p className="text-gray-600">
+          <h1 className="text-xl font-bold text-gray-900">Giỏ hàng của bạn</h1>
+          <p className="text-sm text-gray-500 mt-1">
             {cartItems.length} {cartItems.length === 1 ? 'món' : 'món'} trong giỏ hàng
           </p>
         </motion.div>
@@ -103,94 +103,107 @@ const Cart: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-16 bg-white rounded-2xl shadow-sm"
+            className="text-center py-8 bg-white rounded-lg shadow-sm"
           >
-            <ShoppingBagIcon className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Giỏ hàng trống</h2>
-            <p className="text-gray-600 mb-8">Hãy thêm món ăn vào giỏ để tiếp tục.</p>
+            <ShoppingBagIcon className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Giỏ hàng trống</h2>
+            <p className="text-sm text-gray-500 mb-4">Hãy thêm món ăn vào giỏ để tiếp tục.</p>
             <Link
               to="/menu"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 transition-colors duration-200"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-full text-white bg-red-600 hover:bg-red-700 transition-colors duration-200"
             >
               Xem thực đơn
             </Link>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="lg:col-span-2"
+              className="lg:col-span-2 space-y-3"
             >
               <AnimatePresence>
                 {cartItems.map((item) => (
                   <motion.div
-                    key={item.id}
+                    key={`${item.product.id}-${item.size}`}
                     variants={itemVariants}
                     initial="hidden"
                     animate="visible"
                     exit={{ opacity: 0, x: -100 }}
-                    className="bg-white rounded-xl shadow-sm mb-4 overflow-hidden hover:shadow-md transition-shadow duration-200"
+                    className="bg-white rounded-lg shadow-sm overflow-hidden"
                   >
-                    <div className="flex items-center p-6">
+                    <div className="flex flex-col sm:flex-row p-4">
                       <motion.img
                         whileHover={{ scale: 1.05 }}
-                        src={item.image}
-                        alt={item.name}
-                        className="w-24 h-24 object-cover rounded-lg"
+                        src={item.product.images[0]?.url || '/placeholder.jpg'}
+                        alt={item.product.name}
+                        className="w-24 h-24 object-cover rounded-lg mb-3 sm:mb-0"
                       />
-                      <div className="ml-6 flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-                        <div className="flex items-center space-x-4 mt-2">
-                          <div className="flex space-x-2">
-                            {(['S', 'M', 'L'] as const).map((size) => (
-                              <motion.button
-                                key={size}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => handleSizeChange(item.id, size)}
-                                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                                  item.size === size
-                                    ? 'bg-red-600 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                              >
-                                {size}
-                              </motion.button>
-                            ))}
+                      <div className="flex-1 sm:ml-4">
+                        <div className="flex justify-between items-start">
+                          <h3 className="text-base font-medium text-gray-900">{item.product.name}</h3>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => dispatch(removeFromCart({ productId: item.product.id, size: item.size }))}
+                            className="text-gray-400 hover:text-red-600 transition-colors"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </motion.button>
+                        </div>
+                        
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {item.product.sizes.map((sizeOption) => (
+                            <motion.button
+                              key={sizeOption.id}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleSizeChange(item.product, item.size, sizeOption)}
+                              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                                item.size === sizeOption.size
+                                  ? 'bg-red-600 text-white shadow-sm'
+                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              }`}
+                            >
+                              <div className="flex items-center space-x-1">
+                                <span>{sizeOption.size}</span>
+                                <span className="text-xs opacity-75">
+                                  {new Intl.NumberFormat('vi-VN', {
+                                    style: 'currency',
+                                    currency: 'VND'
+                                  }).format(sizeOption.price)}
+                                </span>
+                              </div>
+                            </motion.button>
+                          ))}
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-between">
+                          <div className="flex items-center space-x-2 bg-gray-50 rounded-full px-3 py-1">
+                            <motion.button
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => handleQuantityChange(item.product.id, item.size, item.quantity - 1)}
+                              className="p-1 hover:text-red-600 transition-colors"
+                            >
+                              <MinusIcon className="h-4 w-4" />
+                            </motion.button>
+                            <span className="w-6 text-center font-medium">{item.quantity}</span>
+                            <motion.button
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => handleQuantityChange(item.product.id, item.size, item.quantity + 1)}
+                              className="p-1 hover:text-red-600 transition-colors"
+                            >
+                              <PlusIcon className="h-4 w-4" />
+                            </motion.button>
                           </div>
                           <p className="text-red-600 font-medium">
-                            {(item.price * (item.size === 'S' ? 1 : item.size === 'M' ? 1.2 : 1.5)).toLocaleString('vi-VN')}đ
+                            {new Intl.NumberFormat('vi-VN', {
+                              style: 'currency',
+                              currency: 'VND'
+                            }).format(item.price)}
                           </p>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2 bg-gray-100 rounded-lg px-2">
-                          <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                            className="p-1 hover:text-red-600 transition-colors"
-                          >
-                            <MinusIcon className="h-4 w-4" />
-                          </motion.button>
-                          <span className="w-8 text-center font-medium">{item.quantity}</span>
-                          <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                            className="p-1 hover:text-red-600 transition-colors"
-                          >
-                            <PlusIcon className="h-4 w-4" />
-                          </motion.button>
-                        </div>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => dispatch(removeFromCart(item.id))}
-                          className="text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                        </motion.button>
                       </div>
                     </div>
                   </motion.div>
@@ -203,61 +216,52 @@ const Cart: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               className="lg:col-span-1"
             >
-              <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Tổng đơn hàng</h2>
+              <div className="bg-white rounded-lg shadow-sm p-4 sticky top-20">
+                <h2 className="text-base font-semibold text-gray-900 mb-4">Tổng đơn hàng</h2>
                 
-                {/* Chọn loại đơn hàng */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Loại đơn hàng
-                  </label>
-                  <select
-                    value={deliveryType}
-                    onChange={(e) => setDeliveryType(e.target.value as 'Dine-in' | 'Take-away' | 'Delivery')}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  >
-                    <option value="Dine-in">Tại quán</option>
-                    <option value="Take-away">Mang về</option>
-                    <option value="Delivery">Giao hàng</option>
-                  </select>
-                </div>
-
-                {/* Số bàn (chỉ hiển thị khi chọn Dine-in) */}
-                {deliveryType === 'Dine-in' && (
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Số bàn
-                    </label>
-                    <input
-                      type="number"
-                      value={tableNumber || ''}
-                      onChange={(e) => setTableNumber(Number(e.target.value))}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Nhập số bàn"
-                    />
-                  </div>
-                )}
-
-                <div className="space-y-4">
-                  <div className="flex justify-between text-gray-600">
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm text-gray-600">
                     <span>Tạm tính</span>
-                    <span>{totalAmount.toLocaleString('vi-VN')}đ</span>
+                    <span>{result.total.toLocaleString('vi-VN')}đ</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-sm text-gray-600">
                     <span>Phí vận chuyển</span>
                     <span>Miễn phí</span>
                   </div>
-                  <div className="border-t pt-4">
-                    <div className="flex justify-between text-lg font-semibold">
+                  <div className="border-t pt-3">
+                    <div className="flex justify-between text-base font-semibold">
                       <span>Tổng cộng</span>
-                      <span className="text-red-600">{totalAmount.toLocaleString('vi-VN')}đ</span>
+                      <span className="text-red-600">{result.total.toLocaleString('vi-VN')}đ</span>
                     </div>
                   </div>
+
+                  <div className="space-y-2">
+                    <select
+                      value={deliveryType}
+                      onChange={(e) => setDeliveryType(e.target.value as 'Dine-in' | 'Take-away' | 'Delivery')}
+                      className="w-full px-3 py-2 text-sm rounded-full border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    >
+                      <option value="Dine-in">Tại quán</option>
+                      <option value="Take-away">Mang về</option>
+                      <option value="Delivery">Giao hàng</option>
+                    </select>
+
+                    {deliveryType === 'Dine-in' && (
+                      <input
+                        type="number"
+                        value={tableNumber || ''}
+                        onChange={(e) => setTableNumber(Number(e.target.value))}
+                        className="w-full px-3 py-2 text-sm rounded-full border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Nhập số bàn"
+                      />
+                    )}
+                  </div>
+
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleCheckout}
-                    className="w-full bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors duration-200"
+                    className="w-full bg-red-600 text-white py-2.5 rounded-full font-medium hover:bg-red-700 transition-colors duration-200 text-sm"
                   >
                     Thanh toán ngay
                   </motion.button>
@@ -265,7 +269,7 @@ const Cart: React.FC = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => dispatch(clearCart())}
-                    className="w-full mt-2 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200"
+                    className="w-full bg-gray-100 text-gray-700 py-2.5 rounded-full font-medium hover:bg-gray-200 transition-colors duration-200 text-sm"
                   >
                     Xóa giỏ hàng
                   </motion.button>
