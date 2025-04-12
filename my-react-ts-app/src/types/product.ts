@@ -1,11 +1,27 @@
 export interface Product {
   id: number;
-  title: string;
-  price: number;
+  categoryId: number | null;
+  name: string;
   description: string;
-  image: string;
+  ingredients: string[];
+  price: number;
   rating: number;
-  totalReviews: number;
-  ingredients?: string[];
-  category?: string;
-} 
+  total_reviews: number;
+  created_at: string;
+  updated_at: string;
+  images: ProductImage[];
+  sizes: ProductSize[];
+}
+
+interface ProductImage {
+  id: number;
+  product_id: number;
+  url: string;
+}
+
+interface ProductSize {
+  id: number;
+  product_id: number;
+  size: string;
+  price: number;
+}

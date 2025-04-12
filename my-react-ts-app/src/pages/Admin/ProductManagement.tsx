@@ -4,34 +4,7 @@ import { useForm } from 'react-hook-form';
 import { categoriesApi } from '../../services/categorie';
 import { productApi } from '../../services/product';
 import Notification from '../../components/Notification';
-
-interface Product {
-  id: number;
-  categoryId: number | null;
-  name: string;
-  description: string;
-  ingredients: string[];
-  price: number;
-  rating: number;
-  total_reviews: number;
-  created_at: string;
-  updated_at: string;
-  images: ProductImage[];
-  sizes: ProductSize[];
-}
-
-interface ProductImage {
-  id: number;
-  product_id: number;
-  image_url: string;
-}
-
-interface ProductSize {
-  id: number;
-  product_id: number;
-  size: string;
-  price: number;
-}
+import { Product } from '../../types/product';
 
 interface Category {
   id: number;
@@ -42,7 +15,7 @@ export interface ProductFormData {
   categoryId: number | null;
   name: string;
   description: string;
-  ingredients: string[];
+  ingredients: string | string[];
   price: number;
   images: string[];
   sizes: { size: string; price: number }[];
@@ -78,8 +51,7 @@ const ProductManagement: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/products');
-      const data = await response.json();
+      const data = await productApi.getAll();
       setProducts(data);
     } catch (error) {
       console.error('Lỗi khi tải sản phẩm:', error);
@@ -87,7 +59,7 @@ const ProductManagement: React.FC = () => {
       setIsLoading(false);
     }
   };
-
+console.log("product", products)
   const fetchCategories = async () => {
     try {
       const data = await categoriesApi.getAll();
@@ -114,7 +86,9 @@ const ProductManagement: React.FC = () => {
     try {
       const productData = {
         ...data,
-        ingredients: data.ingredients,
+        ingredients: typeof data.ingredients === 'string' 
+          ? data.ingredients.split(',').map(item => item.trim())
+          : data.ingredients,
         images: imageUrls,
         sizes: sizeInputs
       };
@@ -161,7 +135,7 @@ const ProductManagement: React.FC = () => {
     setValue('description', product.description);
     setValue('ingredients', product.ingredients);
     setValue('price', product.price);
-    setImageUrls(product.images.map(img => img.image_url));
+    setImageUrls(product.images.map(img => img.url));
     setSizeInputs(product.sizes.map(size => ({ size: size.size, price: size.price })));
     setEditingId(product.id);
     setIsModalOpen(true);
@@ -355,11 +329,10 @@ const ProductManagement: React.FC = () => {
                   Nguyên Liệu (phân cách bằng dấu phẩy)
                 </label>
                 <textarea
-                  {...register('ingredients', {
-                    setValueAs: (value: string) => value.split(',').map(item => item.trim())
-                  })}
+                  {...register('ingredients')}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   rows={3}
+                  placeholder="Nhập nguyên liệu, phân cách bằng dấu phẩy"
                 />
               </div>
               <div>
