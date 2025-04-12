@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
+import { categoriesApi } from '../../services/categorie';
+import { productApi } from '../../services/product';
+import Notification from '../../components/Notification';
 
 interface Product {
   id: number;
-  category_id: number | null;
+  categoryId: number | null;
   name: string;
   description: string;
   ingredients: string[];
@@ -35,14 +38,20 @@ interface Category {
   name: string;
 }
 
-interface ProductFormData {
-  category_id: number | null;
+export interface ProductFormData {
+  categoryId: number | null;
   name: string;
   description: string;
-  ingredients: string;
+  ingredients: string[];
   price: number;
   images: string[];
   sizes: { size: string; price: number }[];
+}
+
+interface NotificationState {
+  show: boolean;
+  message: string;
+  type: 'success' | 'error';
 }
 
 const ProductManagement: React.FC = () => {
@@ -53,6 +62,12 @@ const ProductManagement: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [sizeInputs, setSizeInputs] = useState<{ size: string; price: number }[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState<NotificationState>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<ProductFormData>();
 
@@ -75,46 +90,49 @@ const ProductManagement: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
-      const data = await response.json();
+      const data = await categoriesApi.getAll();
       setCategories(data);
     } catch (error) {
       console.error('Lỗi khi tải danh mục:', error);
     }
   };
 
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({
+      show: true,
+      message,
+      type
+    });
+  };
+
+  const hideNotification = () => {
+    setNotification(prev => ({ ...prev, show: false }));
+  };
+
   const onSubmit = async (data: ProductFormData) => {
+    setIsSubmitting(true);
     try {
       const productData = {
         ...data,
-        ingredients: data.ingredients.split(',').map(item => item.trim()),
+        ingredients: data.ingredients,
         images: imageUrls,
         sizes: sizeInputs
       };
 
-      const url = editingId 
-        ? `/api/products/${editingId}`
-        : '/api/products';
-      
-      const method = editingId ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(productData),
-      });
-
-      if (response.ok) {
-        console.log(editingId ? 'Cập nhật thành công' : 'Thêm mới thành công');
-        fetchProducts();
-        handleCloseModal();
+      if (editingId) {
+        await productApi.update(editingId, productData);
+        showNotification('Cập nhật sản phẩm thành công!', 'success');
       } else {
-        console.error('Có lỗi xảy ra');
+        await productApi.create(productData);
+        showNotification('Thêm sản phẩm thành công!', 'success');
       }
+      
+      fetchProducts();
+      handleCloseModal();
     } catch (error) {
-      console.error('Lỗi khi lưu sản phẩm:', error);
+      showNotification('Có lỗi xảy ra, vui lòng thử lại!', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -138,10 +156,10 @@ const ProductManagement: React.FC = () => {
   };
 
   const handleEdit = (product: Product) => {
-    setValue('category_id', product.category_id);
+    setValue('categoryId', product.categoryId);
     setValue('name', product.name);
     setValue('description', product.description);
-    setValue('ingredients', product.ingredients.join(', '));
+    setValue('ingredients', product.ingredients);
     setValue('price', product.price);
     setImageUrls(product.images.map(img => img.image_url));
     setSizeInputs(product.sizes.map(size => ({ size: size.size, price: size.price })));
@@ -247,7 +265,7 @@ const ProductManagement: React.FC = () => {
                   {product.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {categories.find(c => c.id === product.category_id)?.name || 'Không có'}
+                  {categories.find(c => c.id === product.categoryId)?.name || 'Không có'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {product.price.toLocaleString('vi-VN')}đ
@@ -299,7 +317,7 @@ const ProductManagement: React.FC = () => {
                   Danh Mục
                 </label>
                 <select
-                  {...register('category_id')}
+                  {...register('categoryId')}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 >
                   <option value="">Chọn danh mục</option>
@@ -337,7 +355,9 @@ const ProductManagement: React.FC = () => {
                   Nguyên Liệu (phân cách bằng dấu phẩy)
                 </label>
                 <textarea
-                  {...register('ingredients')}
+                  {...register('ingredients', {
+                    setValueAs: (value: string) => value.split(',').map(item => item.trim())
+                  })}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   rows={3}
                 />
@@ -377,23 +397,46 @@ const ProductManagement: React.FC = () => {
                   </motion.button>
                 </div>
                 {imageUrls.map((url, index) => (
-                  <div key={index} className="flex items-center space-x-2 mb-2">
-                    <input
-                      type="text"
-                      value={url}
-                      onChange={(e) => updateImageUrl(index, e.target.value)}
-                      placeholder="URL hình ảnh"
-                      className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    />
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      type="button"
-                      onClick={() => removeImageUrl(index)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      Xóa
-                    </motion.button>
+                  <div key={index} className="flex flex-col space-y-2 mb-4">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={url}
+                        onChange={(e) => updateImageUrl(index, e.target.value)}
+                        placeholder="URL hình ảnh"
+                        className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        onClick={() => removeImageUrl(index)}
+                        className="text-red-600 hover:text-red-700 p-2"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </motion.button>
+                    </div>
+                    {url && (
+                      <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+                          <img
+                            src={url}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                            <span className="text-white opacity-0 hover:opacity-100 transition-opacity duration-300 text-sm">
+                              Xem ảnh
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -450,7 +493,8 @@ const ProductManagement: React.FC = () => {
                   whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
                 >
                   Hủy
                 </motion.button>
@@ -458,14 +502,30 @@ const ProductManagement: React.FC = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 relative"
                 >
-                  {editingId ? 'Cập Nhật' : 'Thêm Mới'}
+                  {isSubmitting ? (
+                    <div className="flex items-center">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Đang xử lý...
+                    </div>
+                  ) : (
+                    editingId ? 'Cập Nhật' : 'Thêm Mới'
+                  )}
                 </motion.button>
               </div>
             </form>
           </motion.div>
         </div>
+      )}
+
+      {notification.show && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={hideNotification}
+        />
       )}
     </div>
   );

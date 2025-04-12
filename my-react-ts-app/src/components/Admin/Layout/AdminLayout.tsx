@@ -63,7 +63,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     },
     {
       title: 'Thêm sản phẩm',
-      path: '/admin/products/add',
+      path: '/admin/products',
       icon: PlusCircleIcon,
     },
     {
