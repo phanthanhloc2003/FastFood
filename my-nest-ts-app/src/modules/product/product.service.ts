@@ -29,7 +29,7 @@ export class ProductService {
       if (!category) {
         throw new NotFoundException('Category not found');
       }
-      product.category = category;
+      product.categoryId = category;
     }
 
     const savedProduct = await this.productRepository.save(product);
@@ -53,14 +53,14 @@ export class ProductService {
 
   async findAll(): Promise<Product[]> {
     return this.productRepository.find({
-      relations: ['category', 'sizes', 'images'],
+      relations: ['categoryId', 'sizes', 'images'],
     });
   }
 
   async findOne(id: number): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['category', 'sizes', 'images'],
+      relations: ['categoryId', 'sizes', 'images'],
     });
 
     if (!product) {
@@ -79,7 +79,7 @@ export class ProductService {
       if (!category) {
         throw new NotFoundException('Category not found');
       }
-      product.category = category;
+      product.categoryId = category;
     }
 
     Object.assign(product, productData);
@@ -114,7 +114,7 @@ export class ProductService {
 
   async findByCategory(categoryId: number): Promise<Product[]> {
     return this.productRepository.find({
-      where: { category: { id: categoryId } },
+      where: { categoryId: { id: categoryId } },
       relations: ['category', 'sizes', 'images'],
     });
   }

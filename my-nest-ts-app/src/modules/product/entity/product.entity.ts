@@ -21,7 +21,7 @@ export class Product {
     onDelete: 'SET NULL',
     nullable: true,
   })
-  category: Category;
+  categoryId: Category;
 
   @Column({ length: 100 })
   name: string;
@@ -35,7 +35,7 @@ export class Product {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
 
-  @Column({ type: 'float', default: 0 })
+  @Column({ type: 'float', default: 5 })
   rating: number;
 
   @Column({ type: 'int', default: 0 })

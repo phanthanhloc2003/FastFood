@@ -1,4 +1,3 @@
-// src/categories/category.entity.ts
 import { Product } from 'src/modules/product/entity/product.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
@@ -19,6 +18,6 @@ export class Category {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => Product, product => product.category)
+  @OneToMany(() => Product, product => product.categoryId)
   products: Product[];
 }
