@@ -50,12 +50,15 @@ export class CartController {
       body.newSizeId,
     );
   }
-
   @Delete('/:productSizeId')
   async removeItem(
     @User() user: IUserNoPassWord,
     @Param('productSizeId') productSizeId: string,
   ) {
     return this.cartService.removeItem(user.email, +productSizeId);
+  }
+  @Delete('/item/clear')
+  clearCart(@User() user: IUserNoPassWord) {
+    return this.cartService.clearCart(user);
   }
 }

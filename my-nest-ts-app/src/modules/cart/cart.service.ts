@@ -105,32 +105,31 @@ export class CartService {
     }
   }
   async removeItem(email: string, sizeId: number) {
-   try {
-    const isUser = await this.userService.findOne(email);
-    if (!isUser) throw new NotFoundException('User not found');
-    const cart = await this.cartRepository.findOne({
-      where: { user: { id: isUser.id } },
-    });
-    if (!cart) throw new NotFoundException('Cart not found');
-    const cartItem = await this.cartItemRepository.findOne({
-      where: {
-        cart: { id: cart.id },
-        productSize: { id: sizeId },
-      },
-    });
+    try {
+      const isUser = await this.userService.findOne(email);
+      if (!isUser) throw new NotFoundException('User not found');
+      const cart = await this.cartRepository.findOne({
+        where: { user: { id: isUser.id } },
+      });
+      if (!cart) throw new NotFoundException('Cart not found');
+      const cartItem = await this.cartItemRepository.findOne({
+        where: {
+          cart: { id: cart.id },
+          productSize: { id: sizeId },
+        },
+      });
 
-    if (!cartItem) {
-      throw new NotFoundException('Cart item not found');
+      if (!cartItem) {
+        throw new NotFoundException('Cart item not found');
+      }
+
+      await this.cartItemRepository.remove(cartItem);
+
+      return { message: 'Cart item deleted successfully' };
+    } catch (error) {
+      console.error('err', error);
+      throw error;
     }
-
-    await this.cartItemRepository.remove(cartItem);
-
-    return { message: 'Cart item deleted successfully' };
-    
-   } catch (error) {
-    console.error("err",error)
-    throw error;
-   }
   }
 
   async updateQuantity(
@@ -140,24 +139,24 @@ export class CartService {
   ) {
     try {
       const isUser = await this.userService.findOne(user.email);
-    if (!isUser) throw new NotFoundException('User not found');
-    const cart = await this.cartRepository.findOne({
-      where: { user: { id: isUser.id } },
-    });
-    if (!cart) throw new NotFoundException('Cart not found');
-    const cartItem = await this.cartItemRepository.findOne({
-      where: {
-        cart: { id: cart.id },
-        productSize: { id: sizeId },
-      },
-      relations: ['productSize'],
-    });
-    if (!cartItem) throw new NotFoundException('Cart item not found');
-    cartItem.quantity = quantity;
-    await this.cartItemRepository.save(cartItem);
-    return { message: 'Quantity updated successfully', cartItem };
+      if (!isUser) throw new NotFoundException('User not found');
+      const cart = await this.cartRepository.findOne({
+        where: { user: { id: isUser.id } },
+      });
+      if (!cart) throw new NotFoundException('Cart not found');
+      const cartItem = await this.cartItemRepository.findOne({
+        where: {
+          cart: { id: cart.id },
+          productSize: { id: sizeId },
+        },
+        relations: ['productSize'],
+      });
+      if (!cartItem) throw new NotFoundException('Cart item not found');
+      cartItem.quantity = quantity;
+      await this.cartItemRepository.save(cartItem);
+      return { message: 'Quantity updated successfully', cartItem };
     } catch (error) {
-      console.error("error",error)
+      console.error('error', error);
       throw error;
     }
   }
@@ -165,48 +164,63 @@ export class CartService {
   async changeItemSize(
     user: IUserNoPassWord,
     oldSizeId: number,
-    newSizeId: number
+    newSizeId: number,
   ) {
-  try {
-    const isUser = await this.userService.findOne(user.email);
-    if (!isUser) throw new NotFoundException('User not found');
-  
-    const cart = await this.cartRepository.findOne({
-      where: { user: { id: isUser.id } },
-    });
-    if (!cart) throw new NotFoundException('Cart not found');
-  
-    const cartItem = await this.cartItemRepository.findOne({
-      where: {
-        cart: { id: cart.id },
-        productSize: { id: oldSizeId },
-      },
-      relations: {
-        productSize: {
-          product: {
-            sizes: true,
+    try {
+      const isUser = await this.userService.findOne(user.email);
+      if (!isUser) throw new NotFoundException('User not found');
+
+      const cart = await this.cartRepository.findOne({
+        where: { user: { id: isUser.id } },
+      });
+      if (!cart) throw new NotFoundException('Cart not found');
+
+      const cartItem = await this.cartItemRepository.findOne({
+        where: {
+          cart: { id: cart.id },
+          productSize: { id: oldSizeId },
+        },
+        relations: {
+          productSize: {
+            product: {
+              sizes: true,
+            },
           },
         },
-      },
-    });
-    if (!cartItem) {
-      throw new NotFoundException('Cart item with old size not found');
+      });
+      if (!cartItem) {
+        throw new NotFoundException('Cart item with old size not found');
+      }
+      const newSize = await this.productService.findBySize(newSizeId);
+      if (!newSize) {
+        throw new NotFoundException('New size not found');
+      }
+      if (newSize.product.id !== cartItem.productSize.product.id) {
+        throw new BadRequestException('New size must belong to same product');
+      }
+      cartItem.productSize = newSize;
+      await this.cartItemRepository.save(cartItem);
+      return { message: 'Size updated successfully' };
+    } catch (error) {
+      console.log('error', error);
+      throw error;
     }
-    const newSize = await this.productService.findBySize(newSizeId);
-    if (!newSize) {
-      throw new NotFoundException('New size not found');
-    }  
-    if (newSize.product.id !== cartItem.productSize.product.id) {
-      throw new BadRequestException('New size must belong to same product');
+  }
+
+  async clearCart(user: IUserNoPassWord) {
+    try {
+      const isUser = await this.userService.findOne(user.email);
+      if (!isUser) throw new NotFoundException('User not found');
+      const cart = await this.cartRepository.findOne({
+        where: { user: { id: isUser.id } },
+        relations: ['items'], 
+      });
+      if (!cart) throw new NotFoundException('Cart not found');
+      await this.cartItemRepository.delete({ cart: { id: cart.id } });
+      return { message: 'Cart cleared successfully' };
+    } catch (error) {
+      console.error('err', error);
+      throw error;
     }
-    cartItem.productSize = newSize;
-    await this.cartItemRepository.save(cartItem);
-    return { message: 'Size updated successfully' };
-  } catch (error) {
-     console.log("error", error)
-     throw error;
   }
-  }
-  
-  
 }
