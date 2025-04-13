@@ -28,7 +28,6 @@ const App: React.FC = () => {
     };
     fetchUser();
   }, [dispatch]);
-
     useEffect(() => {
 
       const fetchCartData = async () => {
@@ -54,7 +53,7 @@ const App: React.FC = () => {
       if (  isAuthenticated && cartItems.length === 0) {
         fetchCartData();
       }
-    }, [dispatch,cartItems]);
+    }, [isAuthenticated]);
 
   return (
     <Router>
