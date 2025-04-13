@@ -13,8 +13,22 @@ import { Address, Order } from '../types';
 import { useNavigate } from 'react-router-dom';
 import usersApi from '../services/user';
 
+interface User {
+  id: number;
+  fullName: string;
+  email: string;
+  phone: string;
+  avatar: string;
+  role: string;
+  address: string | null;
+  dateOfBirth: string | null;
+  gender: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const Profile: React.FC = () => {
-  const user = useSelector((state: RootState) => state.auth.user);
+  const user = useSelector((state: RootState) => state.auth.user) as User;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
@@ -29,7 +43,12 @@ const Profile: React.FC = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-
+        // Fetch user data, orders, and addresses here
+        // const userData = await usersApi.getUserProfile();
+        // const ordersData = await usersApi.getUserOrders();
+        // const addressesData = await usersApi.getUserAddresses();
+        // setOrders(ordersData);
+        // setAddresses(addressesData);
       } catch (err: any) {
         setError(err.message || 'Có lỗi xảy ra khi tải dữ liệu');
       } finally {
@@ -49,17 +68,10 @@ const Profile: React.FC = () => {
         formData.append('avatar', file);
   
         const data = await usersApi.updateAvatar(formData);
-  
-        // Cập nhật avatar trong Redux store
-        // dispatch(updateUserAvatar(data.avatarUrl));
-  
-        // Hiển thị preview
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setAvatarPreview(reader.result as string);
-          setShowAvatarUpload(false);
-        };
-        reader.readAsDataURL(file);
+        if (data.avatar) {
+          setAvatarPreview(data.avatar);
+        }
+        setShowAvatarUpload(false);
       } catch (error: any) {
         setError(error.message || 'Có lỗi xảy ra khi cập nhật avatar');
       } finally {
@@ -69,22 +81,51 @@ const Profile: React.FC = () => {
   };
 
   const handleAddAddress = () => {
-    navigate("/address")
+    navigate("/address");
   };
 
   const handleEditAddress = (address: Address) => {
+    // Implement edit address logic
   };
 
   const handleDeleteAddress = (address: Address) => {
+    // Implement delete address logic
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.5,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: {
+        duration: 0.3
+      }
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 mt-[50px]">
+    <motion.div 
+      className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 mt-[50px]"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-xl overflow-hidden"
+          variants={itemVariants}
+          className="bg-white rounded-2xl shadow-xl overflow-hidden backdrop-blur-sm bg-opacity-90"
         >
           <ProfileHeader
             user={user}
@@ -126,6 +167,7 @@ const Profile: React.FC = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
                 >
                   {activeTab === 'profile' && <ProfileInfo user={user} />}
                   {activeTab === 'orders' && <OrderList orders={orders} />}
@@ -144,7 +186,7 @@ const Profile: React.FC = () => {
           </div>
         </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

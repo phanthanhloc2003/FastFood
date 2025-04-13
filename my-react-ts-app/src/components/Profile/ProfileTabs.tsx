@@ -1,10 +1,11 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   UserCircleIcon,
   ShoppingBagIcon,
   MapPinIcon,
   Cog6ToothIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 
 interface Tab {
@@ -26,9 +27,66 @@ const tabs: Tab[] = [
 ];
 
 const ProfileTabs: React.FC<ProfileTabsProps> = ({ activeTab, onTabChange }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const activeTabData = tabs.find(tab => tab.id === activeTab);
+
   return (
     <div className="border-b border-gray-200">
-      <nav className="flex space-x-8 px-6">
+      {/* Mobile dropdown */}
+      <div className="md:hidden">
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="flex items-center justify-between w-full px-4 py-3 text-left"
+        >
+          <div className="flex items-center">
+            {activeTabData && (
+              <>
+                <activeTabData.icon className="w-5 h-5 mr-2 text-primary-main" />
+                <span className="font-medium">{activeTabData.name}</span>
+              </>
+            )}
+          </div>
+          <ChevronDownIcon 
+            className={`w-5 h-5 transition-transform ${isMobileMenuOpen ? 'transform rotate-180' : ''}`} 
+          />
+        </button>
+        
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="py-2 bg-white">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      onTabChange(tab.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`flex items-center w-full px-4 py-2 text-sm ${
+                      activeTab === tab.id
+                        ? 'text-primary-main bg-primary-main/5'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <tab.icon className="w-5 h-5 mr-2" />
+                    {tab.name}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Desktop tabs */}
+      <nav className="hidden md:flex space-x-8 px-6">
         {tabs.map((tab) => (
           <motion.button
             key={tab.id}
