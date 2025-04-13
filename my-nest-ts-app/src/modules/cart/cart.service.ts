@@ -4,6 +4,7 @@ import {
   Inject,
   HttpException,
   InternalServerErrorException,
+  BadRequestException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Cart } from './entity/cart.entity';
@@ -44,8 +45,6 @@ export class CartService {
       if (!productSize) {
         throw new NotFoundException('Product size not found');
       }
-
-      // 4. Kiểm tra item đã tồn tại trong giỏ hàng chưa
       let cartItem = await this.cartItemRepository.findOne({
         where: {
           cart: { id: cart.id },
@@ -105,38 +104,6 @@ export class CartService {
       throw new Error('Failed to fetch cart items');
     }
   }
-
-  // async remove(userId: number): Promise<void> {
-  //   const cart = await this.findOne(userId);
-  //   await this.cartRepository.remove(cart);
-  // }
-
-  // async updateItemQuantity(
-  //   userId: number,
-  //   productSizeId: number,
-  //   quantity: number,
-  // ): Promise<Cart> {
-  //   const cart = await this.findOne(userId);
-  //   const cartItem = cart.items.find(
-  //     (item) => item.productSize.id === productSizeId,
-  //   );
-
-  //   if (!cartItem) {
-  //     throw new NotFoundException(
-  //       `Item with product size id ${productSizeId} not found in cart`,
-  //     );
-  //   }
-
-  //   if (quantity <= 0) {
-  //     await this.cartItemRepository.remove(cartItem);
-  //   } else {
-  //     cartItem.quantity = quantity;
-  //     await this.cartItemRepository.save(cartItem);
-  //   }
-
-  //   return this.findOne(userId);
-  // }
-
   async removeItem(email: string, sizeId: number) {
    try {
     const isUser = await this.userService.findOne(email);
@@ -186,7 +153,6 @@ export class CartService {
       relations: ['productSize'],
     });
     if (!cartItem) throw new NotFoundException('Cart item not found');
-    console.log("cartItem",cartItem)
     cartItem.quantity = quantity;
     await this.cartItemRepository.save(cartItem);
     return { message: 'Quantity updated successfully', cartItem };
@@ -195,5 +161,52 @@ export class CartService {
       throw error;
     }
   }
+
+  async changeItemSize(
+    user: IUserNoPassWord,
+    oldSizeId: number,
+    newSizeId: number
+  ) {
+  try {
+    const isUser = await this.userService.findOne(user.email);
+    if (!isUser) throw new NotFoundException('User not found');
+  
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: isUser.id } },
+    });
+    if (!cart) throw new NotFoundException('Cart not found');
+  
+    const cartItem = await this.cartItemRepository.findOne({
+      where: {
+        cart: { id: cart.id },
+        productSize: { id: oldSizeId },
+      },
+      relations: {
+        productSize: {
+          product: {
+            sizes: true,
+          },
+        },
+      },
+    });
+    if (!cartItem) {
+      throw new NotFoundException('Cart item with old size not found');
+    }
+    const newSize = await this.productService.findBySize(newSizeId);
+    if (!newSize) {
+      throw new NotFoundException('New size not found');
+    }  
+    if (newSize.product.id !== cartItem.productSize.product.id) {
+      throw new BadRequestException('New size must belong to same product');
+    }
+    cartItem.productSize = newSize;
+    await this.cartItemRepository.save(cartItem);
+    return { message: 'Size updated successfully' };
+  } catch (error) {
+     console.log("error", error)
+     throw error;
+  }
+  }
+  
   
 }

@@ -15,15 +15,14 @@ import { IUserNoPassWord } from '../Users/interfaces/user.interface';
 import { User } from 'src/common/decorators/public-router.decorator';
 import { CartItemDto } from './dto/cart-item.dto';
 import { UpdateCartItemQuantityDto } from './dto/quantityItem.dto';
+import { ChangeSizeDto } from './dto/change-size.dto';
 
 @Controller('cart')
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @Post()
-  async create(@User() user: IUserNoPassWord,
-   @Body() body: CartItemDto
-  ) {
+  async create(@User() user: IUserNoPassWord, @Body() body: CartItemDto) {
     return this.cartService.create(user, body);
   }
 
@@ -35,44 +34,28 @@ export class CartController {
   @Patch('quantity')
   updateCartItemQuantity(
     @User() user: IUserNoPassWord,
-    @Body() body: UpdateCartItemQuantityDto
+    @Body() body: UpdateCartItemQuantityDto,
   ) {
     return this.cartService.updateQuantity(user, body.sizeId, body.quantity);
   }
 
-
-  // @Delete()
-  // async remove(@User() user: IUserNoPassWord): Promise<void> {
-  //   return this.cartService.remove(user.id);
-  // }
-
-  // @Post('items/:productSizeId')
-  // async addItem(
-  //   @User() user: IUserNoPassWord,
-  //   @Param('productSizeId') productSizeId: string,
-  //   @Body('quantity') quantity: number,
-  // ): Promise<Cart> {
-  //   return this.cartService.addItem(user.id, +productSizeId, quantity);
-  // }
-
-  // @Put('items/:productSizeId')
-  // async updateItemQuantity(
-  //   @User() user: IUserNoPassWord,
-  //   @Param('productSizeId') productSizeId: string,
-  //   @Body('quantity') quantity: number,
-  // ): Promise<Cart> {
-  //   return this.cartService.updateItemQuantity(
-  //     user.id,
-  //     +productSizeId,
-  //     quantity,
-  //   );
-  // }
+  @Patch('change-size')
+  changeCartItemSize(
+    @User() user: IUserNoPassWord,
+    @Body() body: ChangeSizeDto,
+  ) {
+    return this.cartService.changeItemSize(
+      user,
+      body.oldSizeId,
+      body.newSizeId,
+    );
+  }
 
   @Delete('/:productSizeId')
   async removeItem(
     @User() user: IUserNoPassWord,
     @Param('productSizeId') productSizeId: string,
-  ){
+  ) {
     return this.cartService.removeItem(user.email, +productSizeId);
   }
 }
