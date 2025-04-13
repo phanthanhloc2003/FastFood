@@ -21,8 +21,9 @@ export class ProductController {
   async findAll(): Promise<Product[]> {
     return this.productService.findAll();
   }
-
+ 
   @Get(':id')
+  @PublicRouter()
   async findOne(@Param('id') id: string): Promise<Product> {
     return this.productService.findOne(+id);
   }
