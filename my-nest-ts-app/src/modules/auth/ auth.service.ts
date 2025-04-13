@@ -132,6 +132,7 @@ export class AuthService {
 
   async handleLogout(response: Response): Promise<{ message: string }> {
     response.clearCookie('c_user');
+
     return { message: 'Logged out successfully' };
   }
 }

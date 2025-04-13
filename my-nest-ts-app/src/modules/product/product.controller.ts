@@ -4,6 +4,7 @@ import { CreateProductDto, UpdateProductDto } from './dto/create-product.dto';
 import { Product } from './entity/product.entity';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
+import { PublicRouter } from 'src/common/decorators/public-router.decorator';
 
 @Controller('products')
 export class ProductController {
@@ -16,6 +17,7 @@ export class ProductController {
   }
 
   @Get()
+  @PublicRouter()
   async findAll(): Promise<Product[]> {
     return this.productService.findAll();
   }
