@@ -28,3 +28,7 @@ export interface ProductSize {
   size: string;
   price: number;
 }
+
+ export interface IResProductSize extends ProductSize {
+  product: Product;
+}

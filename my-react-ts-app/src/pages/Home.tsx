@@ -44,7 +44,7 @@ const Home: React.FC = () => {
       setAddedProduct(product);
       setShowAddToCart(true);
       const itemToAdd = {
-        product,
+        product : product,
         quantity: quantity,
         size: size.size,
         sizeId: size.id,
