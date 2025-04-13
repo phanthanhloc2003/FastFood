@@ -13,6 +13,7 @@ import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
+import { PublicRouter } from 'src/common/decorators/public-router.decorator';
 
 @Controller('categories')
 export class CategoriesController {
@@ -26,6 +27,7 @@ export class CategoriesController {
   }
 
   @Get()
+  @PublicRouter()
   @HttpCode(HttpStatus.OK)
   findAll() {
     return this.categoriesService.findAll();
