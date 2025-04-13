@@ -165,4 +165,35 @@ export class CartService {
     throw error;
    }
   }
+
+  async updateQuantity(
+    user: IUserNoPassWord,
+    sizeId: number,
+    quantity: number,
+  ) {
+    try {
+      const isUser = await this.userService.findOne(user.email);
+    if (!isUser) throw new NotFoundException('User not found');
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: isUser.id } },
+    });
+    if (!cart) throw new NotFoundException('Cart not found');
+    const cartItem = await this.cartItemRepository.findOne({
+      where: {
+        cart: { id: cart.id },
+        productSize: { id: sizeId },
+      },
+      relations: ['productSize'],
+    });
+    if (!cartItem) throw new NotFoundException('Cart item not found');
+    console.log("cartItem",cartItem)
+    cartItem.quantity = quantity;
+    await this.cartItemRepository.save(cartItem);
+    return { message: 'Quantity updated successfully', cartItem };
+    } catch (error) {
+      console.error("error",error)
+      throw error;
+    }
+  }
+  
 }

@@ -14,6 +14,7 @@ import { Cart } from './entity/cart.entity';
 import { IUserNoPassWord } from '../Users/interfaces/user.interface';
 import { User } from 'src/common/decorators/public-router.decorator';
 import { CartItemDto } from './dto/cart-item.dto';
+import { UpdateCartItemQuantityDto } from './dto/quantityItem.dto';
 
 @Controller('cart')
 export class CartController {
@@ -31,7 +32,13 @@ export class CartController {
     return this.cartService.findOne(user.id);
   }
 
-  // @Patch('change-size')
+  @Patch('quantity')
+  updateCartItemQuantity(
+    @User() user: IUserNoPassWord,
+    @Body() body: UpdateCartItemQuantityDto
+  ) {
+    return this.cartService.updateQuantity(user, body.sizeId, body.quantity);
+  }
 
 
   // @Delete()
