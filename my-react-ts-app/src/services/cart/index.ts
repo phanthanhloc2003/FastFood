@@ -11,4 +11,9 @@ export const cartApi = {
     const response = await api.get("/cart");
     return response.data;
   },
+
+  remove: async (id: number) => {
+    const response = await api.delete(`/cart/${id}`);
+    return response.data;
+  },
 };

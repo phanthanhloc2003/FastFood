@@ -49,8 +49,7 @@ const App: React.FC = () => {
           console.error("Lỗi khi lấy dữ liệu giỏ hàng:", error);
         } 
       };
-
-      if (  isAuthenticated && cartItems.length === 0) {
+      if ( isAuthenticated) {
         fetchCartData();
       }
     }, [isAuthenticated]);

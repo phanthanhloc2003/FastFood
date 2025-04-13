@@ -16,7 +16,7 @@ import {
   PlusIcon,
 } from "@heroicons/react/24/outline";
 import { Product, ProductSize } from "../types/product";
-
+import { cartApi } from "../services/cart";
 
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
@@ -77,12 +77,12 @@ const Cart: React.FC = () => {
         delivery_type: deliveryType,
         status: "Pending",
         total_price: result.total,
-        items: cartItems.map(item => ({
+        items: cartItems.map((item) => ({
           product_id: item.product.id,
           size_id: item.sizeId,
           quantity: item.quantity,
-          price: item.price
-        }))
+          price: item.price,
+        })),
       };
 
       const response = await fetch("/api/orders", {
@@ -105,6 +105,20 @@ const Cart: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const hanldeRemoveOrderItem = async (
+    id: number,
+    productId: number,
+    size: string
+  ) => {
+   await cartApi.remove(id);
+    dispatch(
+      removeFromCart({
+        productId: productId,
+        size: size,
+      })
+    );
   };
 
   const containerVariants = {
@@ -130,10 +144,11 @@ const Cart: React.FC = () => {
         >
           <h1 className="text-xl font-bold text-gray-900">Giỏ hàng của bạn</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {cartItems.length} {cartItems.length === 1 ? "món" : "món"} trong giỏ hàng
+            {cartItems.length} {cartItems.length === 1 ? "món" : "món"} trong
+            giỏ hàng
           </p>
         </motion.div>
-     
+
         {cartItems.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -175,7 +190,11 @@ const Cart: React.FC = () => {
                     <div className="flex flex-col sm:flex-row p-4">
                       <motion.img
                         whileHover={{ scale: 1.05 }}
-                        src={item.product.images && item.product.images.length > 0 ? item.product.images[0].url : "/placeholder.jpg"}
+                        src={
+                          item.product.images && item.product.images.length > 0
+                            ? item.product.images[0].url
+                            : "/placeholder.jpg"
+                        }
                         alt={item.product.name}
                         className="w-24 h-24 object-cover rounded-lg mb-3 sm:mb-0"
                       />
@@ -188,11 +207,10 @@ const Cart: React.FC = () => {
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() =>
-                              dispatch(
-                                removeFromCart({
-                                  productId: item.product.id,
-                                  size: item.size,
-                                })
+                              hanldeRemoveOrderItem(
+                                item.sizeId,
+                                item.product.id,
+                                item.size
                               )
                             }
                             className="text-gray-400 hover:text-red-600 transition-colors"
