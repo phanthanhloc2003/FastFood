@@ -29,23 +29,22 @@ const Cart: React.FC = () => {
   const [tableNumber, setTableNumber] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const handleQuantityChange = async (
+    sizeId: number,
     productId: number,
     size: string,
-    newQuantity: number
+    quantity: number
   ) => {
     try {
-      if (newQuantity < 1) {
-        // await cartApi.remove(productId, size);
+      await cartApi.changeQuantity({ sizeId, quantity });
+      if (quantity < 1) {
         dispatch(removeFromCart({ productId, size }));
       } else {
-        // await cartApi.updateQuantity(productId, size, newQuantity);
-        dispatch(updateQuantity({ productId, size, quantity: newQuantity }));
+        dispatch(updateQuantity({ productId, size, quantity: quantity }));
       }
     } catch (error) {
       console.error("Lỗi khi cập nhật số lượng:", error);
     }
   };
-
   const handleSizeChange = async (
     product: Product,
     currentSize: string,
@@ -112,7 +111,7 @@ const Cart: React.FC = () => {
     productId: number,
     size: string
   ) => {
-   await cartApi.remove(id);
+    await cartApi.remove(id);
     dispatch(
       removeFromCart({
         productId: productId,
@@ -257,6 +256,7 @@ const Cart: React.FC = () => {
                               whileTap={{ scale: 0.9 }}
                               onClick={() =>
                                 handleQuantityChange(
+                                  item.sizeId,
                                   item.product.id,
                                   item.size,
                                   item.quantity - 1
@@ -273,6 +273,7 @@ const Cart: React.FC = () => {
                               whileTap={{ scale: 0.9 }}
                               onClick={() =>
                                 handleQuantityChange(
+                                  item.sizeId,
                                   item.product.id,
                                   item.size,
                                   item.quantity + 1
