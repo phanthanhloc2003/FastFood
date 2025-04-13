@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link ,useLocation} from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { setCredentials } from "../store/slices/authSlice";
 import { login } from "../services/auth";
 
 const Login: React.FC = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
@@ -14,6 +15,7 @@ const Login: React.FC = () => {
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const from = location.state?.from || '/';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -34,7 +36,7 @@ const Login: React.FC = () => {
     if (response?.access_token) {
       localStorage.setItem("accessToken", response.access_token); 
     }
-      navigate("/");
+    navigate(from); 
     } catch (err: any) {
       setError(err.response?.data?.message || "Có lỗi xảy ra khi đăng nhập");
     } finally {

@@ -3,13 +3,18 @@ import { motion } from "framer-motion";
 import ProductCard from "../components/ProductCard";
 import { Product, ProductSize } from "../types/product";
 import { productApi } from "../services/product";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../store/slices/cartSlice";
 import AddToCartAnimation from "../components/AddToCartAnimation";
 import { cartApi } from "../services/cart";
+import { RootState } from "../store/store";
+import { useNavigate,useLocation } from "react-router-dom";
 
 const Home: React.FC = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const [products, setProducts] = React.useState<Product[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [showAddToCart, setShowAddToCart] = useState(false);
@@ -36,21 +41,28 @@ const Home: React.FC = () => {
     quantity: number
   ) => {
     try {
-      const cart = {
-        productSizeId:size.id,
-        quantity:quantity
+
+      if(isAuthenticated){
+        const cart = {
+          productSizeId:size.id,
+          quantity:quantity
+        }
+        await cartApi.create(cart);
+        setAddedProduct(product);
+        setShowAddToCart(true);
+        const itemToAdd = {
+          product : product,
+          quantity: quantity,
+          size: size.size,
+          sizeId: size.id,
+          price: size.price,
+        };
+        dispatch(addToCart(itemToAdd));
       }
-      await cartApi.create(cart);
-      setAddedProduct(product);
-      setShowAddToCart(true);
-      const itemToAdd = {
-        product : product,
-        quantity: quantity,
-        size: size.size,
-        sizeId: size.id,
-        price: size.price,
-      };
-      dispatch(addToCart(itemToAdd));
+
+      else{
+        navigate('/login', { state: { from: location.pathname } })
+      }
     } catch (error) {
       console.error("err", error);
     }
