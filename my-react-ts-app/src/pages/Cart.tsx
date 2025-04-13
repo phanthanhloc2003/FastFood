@@ -121,6 +121,15 @@ const Cart: React.FC = () => {
     );
   };
 
+  const removeAll = async () => {
+    try {
+      await cartApi.removeAllCart();
+      dispatch(clearCart());
+    } catch (error) {
+      console.error("er",error)
+    }
+  
+  };
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -365,7 +374,7 @@ const Cart: React.FC = () => {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => dispatch(clearCart())}
+                    onClick={() => removeAll()}
                     className="w-full bg-gray-100 text-gray-700 py-2.5 rounded-full font-medium hover:bg-gray-200 transition-colors duration-200 text-sm"
                   >
                     Xóa giỏ hàng

@@ -26,4 +26,10 @@ export const cartApi = {
     const response = await api.patch("/cart/change-size",data);
     return response.data;
   },
+
+  removeAllCart: async () => {
+    const response = await api.delete(`/cart/item/clear`);
+    return response.data;
+  },
+
 };
