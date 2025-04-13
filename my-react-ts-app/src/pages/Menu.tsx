@@ -3,11 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
 import MenuCategories from '../components/Menu/MenuCategories';
 import AddToCartAnimation from '../components/AddToCartAnimation';
-import { Product, Category } from '../types/product';
+import { Product, Category, ProductSize } from '../types/product';
 import { categoriesApi } from '../services/categorie';
 import { productApi } from '../services/product';
+import { cartApi } from '../services/cart';
+import { addToCart } from '../store/slices/cartSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { RootState } from '../store/store';
 
 const Menu: React.FC = () => {
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,14 +68,38 @@ const Menu: React.FC = () => {
     return matchesCategory && matchesSearch;
   });
 
-  const handleAddToCart = (product: Product, size: any) => {
-    setAddedProduct(product);
-    setShowAddToCart(true);
-    setTimeout(() => {
-      setShowAddToCart(false);
-      setAddedProduct(null);
-    }, 3000);
-  };
+   const handleAddToCart = async (
+     product: Product,
+     size: ProductSize,
+     quantity: number
+   ) => {
+     try {
+ 
+       if(isAuthenticated){
+         const cart = {
+           productSizeId:size.id,
+           quantity:quantity
+         }
+         await cartApi.create(cart);
+         setAddedProduct(product);
+         setShowAddToCart(true);
+         const itemToAdd = {
+           product : product,
+           quantity: quantity,
+           size: size.size,
+           sizeId: size.id,
+           price: size.price,
+         };
+         dispatch(addToCart(itemToAdd));
+       }
+ 
+       else{
+         navigate('/login', { state: { from: location.pathname } })
+       }
+     } catch (error) {
+       console.error("err", error);
+     }
+   };
 
   if (loading) {
     return (
