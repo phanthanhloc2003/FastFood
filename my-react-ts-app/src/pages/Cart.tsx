@@ -46,12 +46,13 @@ const Cart: React.FC = () => {
     }
   };
   const handleSizeChange = async (
+    oldSizeId: number,
     product: Product,
     currentSize: string,
     newSize: ProductSize
   ) => {
     try {
-      // await cartApi.updateSize(product.id, currentSize, newSize.id);
+      await cartApi.changeSize({ oldSizeId, newSizeId: newSize.id });
       dispatch(
         updateItemSize({
           productId: product.id,
@@ -226,6 +227,7 @@ const Cart: React.FC = () => {
                               whileTap={{ scale: 0.95 }}
                               onClick={() =>
                                 handleSizeChange(
+                                  item.sizeId,
                                   item.product,
                                   item.size,
                                   sizeOption

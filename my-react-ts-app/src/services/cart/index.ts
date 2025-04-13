@@ -21,4 +21,9 @@ export const cartApi = {
     const response = await api.patch("/cart/quantity",data);
     return response.data;
   },
+
+  changeSize: async (data: { oldSizeId: number; newSizeId: number }) => {
+    const response = await api.patch("/cart/change-size",data);
+    return response.data;
+  },
 };
