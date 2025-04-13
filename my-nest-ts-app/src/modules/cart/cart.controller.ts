@@ -26,42 +26,42 @@ export class CartController {
   }
 
   @Get()
-  async findOne(@User() user: IUserNoPassWord): Promise<Cart> {
+  async findOne(@User() user: IUserNoPassWord) {
     return this.cartService.findOne(user.id);
   }
 
-  @Delete()
-  async remove(@User() user: IUserNoPassWord): Promise<void> {
-    return this.cartService.remove(user.id);
-  }
+  // @Delete()
+  // async remove(@User() user: IUserNoPassWord): Promise<void> {
+  //   return this.cartService.remove(user.id);
+  // }
 
-  @Post('items/:productSizeId')
-  async addItem(
-    @User() user: IUserNoPassWord,
-    @Param('productSizeId') productSizeId: string,
-    @Body('quantity') quantity: number,
-  ): Promise<Cart> {
-    return this.cartService.addItem(user.id, +productSizeId, quantity);
-  }
+  // @Post('items/:productSizeId')
+  // async addItem(
+  //   @User() user: IUserNoPassWord,
+  //   @Param('productSizeId') productSizeId: string,
+  //   @Body('quantity') quantity: number,
+  // ): Promise<Cart> {
+  //   return this.cartService.addItem(user.id, +productSizeId, quantity);
+  // }
 
-  @Put('items/:productSizeId')
-  async updateItemQuantity(
-    @User() user: IUserNoPassWord,
-    @Param('productSizeId') productSizeId: string,
-    @Body('quantity') quantity: number,
-  ): Promise<Cart> {
-    return this.cartService.updateItemQuantity(
-      user.id,
-      +productSizeId,
-      quantity,
-    );
-  }
+  // @Put('items/:productSizeId')
+  // async updateItemQuantity(
+  //   @User() user: IUserNoPassWord,
+  //   @Param('productSizeId') productSizeId: string,
+  //   @Body('quantity') quantity: number,
+  // ): Promise<Cart> {
+  //   return this.cartService.updateItemQuantity(
+  //     user.id,
+  //     +productSizeId,
+  //     quantity,
+  //   );
+  // }
 
-  @Delete('items/:productSizeId')
-  async removeItem(
-    @User() user: IUserNoPassWord,
-    @Param('productSizeId') productSizeId: string,
-  ): Promise<Cart> {
-    return this.cartService.removeItem(user.id, +productSizeId);
-  }
+  // @Delete('items/:productSizeId')
+  // async removeItem(
+  //   @User() user: IUserNoPassWord,
+  //   @Param('productSizeId') productSizeId: string,
+  // ): Promise<Cart> {
+  //   return this.cartService.removeItem(user.id, +productSizeId);
+  // }
 }

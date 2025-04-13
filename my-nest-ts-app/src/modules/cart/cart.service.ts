@@ -26,24 +26,18 @@ export class CartService {
   ) {}
   async create(user: IUserNoPassWord, body: CartItemDto): Promise<CartItem> {
     try {
-      // 1. Tìm người dùng
       const isUser = await this.userService.findOne(user.email);
       if (!isUser) {
         throw new NotFoundException('User not found');
       }
-
-      // 2. Tìm giỏ hàng hiện tại hoặc tạo mới
       let cart = await this.cartRepository.findOne({
         where: { user: { id: isUser.id } },
         relations: ['user', 'items'],
       });
-
       if (!cart) {
         cart = this.cartRepository.create({ user: isUser });
         cart = await this.cartRepository.save(cart);
       }
-
-      // 3. Kiểm tra productSize hợp lệ
       const productSize = await this.productService.findBySize(
         body.productSizeId,
       );
@@ -80,98 +74,84 @@ export class CartService {
     }
   }
 
-  async findOne(userId: number): Promise<Cart> {
-    const cart = await this.cartRepository.findOne({
-      where: { user: { id: userId } },
-    });
-
-    if (!cart) {
-      throw new NotFoundException('Cart not found');
-    }
-
-    return cart;
-  }
-
-  async remove(userId: number): Promise<void> {
-    const cart = await this.findOne(userId);
-    await this.cartRepository.remove(cart);
-  }
-
-  async addItem(
-    userId: number,
-    productSizeId: number,
-    quantity: number,
-  ): Promise<Cart> {
-    const cart = await this.findOne(userId);
-    // const productSize = await this.productSizeRepository.findOne({
-    //   where: { id: productSizeId },
-    // });
-
-    // if (!productSize) {
-    //   throw new NotFoundException(`Product size with id ${productSizeId} not found`);
-    // }
-
-    // Kiểm tra xem item đã tồn tại chưa
-    let cartItem = cart.items.find(
-      (item) => item.productSize.id === productSizeId,
-    );
-
-    if (cartItem) {
-      // Nếu đã tồn tại, cập nhật số lượng
-      cartItem.quantity += quantity;
-      await this.cartItemRepository.save(cartItem);
-    } else {
-      // Nếu chưa tồn tại, tạo mới
-      cartItem = this.cartItemRepository.create({
-        cart,
-        // productSize,
-        quantity,
+  async findOne(userId: number): Promise<CartItem[] | null> {
+    try {
+      let cart = await this.cartRepository.findOne({
+        where: { user: { id: userId } },
+        relations: ['user', 'items'],
       });
-      await this.cartItemRepository.save(cartItem);
+         
+      if(!cart) return [];
+        const cartItem = await this.cartItemRepository.find({
+            where: {
+                cart: {
+                    user: {
+                        id: userId
+                    }
+                }
+            },
+            relations: {
+                productSize: {
+                    product: {
+                        sizes: true
+                    }
+                }
+            }
+        });
+        return cartItem.length === 0 ? null : cartItem;
+    } catch (error) {
+        console.error('Error finding cart items:', error);
+        throw new Error('Failed to fetch cart items');
     }
+}
+  
+  
 
-    return this.findOne(userId);
-  }
+  // async remove(userId: number): Promise<void> {
+  //   const cart = await this.findOne(userId);
+  //   await this.cartRepository.remove(cart);
+  // }
 
-  async updateItemQuantity(
-    userId: number,
-    productSizeId: number,
-    quantity: number,
-  ): Promise<Cart> {
-    const cart = await this.findOne(userId);
-    const cartItem = cart.items.find(
-      (item) => item.productSize.id === productSizeId,
-    );
 
-    if (!cartItem) {
-      throw new NotFoundException(
-        `Item with product size id ${productSizeId} not found in cart`,
-      );
-    }
+  // async updateItemQuantity(
+  //   userId: number,
+  //   productSizeId: number,
+  //   quantity: number,
+  // ): Promise<Cart> {
+  //   const cart = await this.findOne(userId);
+  //   const cartItem = cart.items.find(
+  //     (item) => item.productSize.id === productSizeId,
+  //   );
 
-    if (quantity <= 0) {
-      await this.cartItemRepository.remove(cartItem);
-    } else {
-      cartItem.quantity = quantity;
-      await this.cartItemRepository.save(cartItem);
-    }
+  //   if (!cartItem) {
+  //     throw new NotFoundException(
+  //       `Item with product size id ${productSizeId} not found in cart`,
+  //     );
+  //   }
 
-    return this.findOne(userId);
-  }
+  //   if (quantity <= 0) {
+  //     await this.cartItemRepository.remove(cartItem);
+  //   } else {
+  //     cartItem.quantity = quantity;
+  //     await this.cartItemRepository.save(cartItem);
+  //   }
 
-  async removeItem(userId: number, productSizeId: number): Promise<Cart> {
-    const cart = await this.findOne(userId);
-    const cartItem = cart.items.find(
-      (item) => item.productSize.id === productSizeId,
-    );
+  //   return this.findOne(userId);
+  // }
 
-    if (!cartItem) {
-      throw new NotFoundException(
-        `Item with product size id ${productSizeId} not found in cart`,
-      );
-    }
+  // async removeItem(userId: number, productSizeId: number): Promise<Cart> {
+  //   const cart = await this.findOne(userId);
+  //   const cartItem = cart.items.find(
+  //     (item) => item.productSize.id === productSizeId,
+  //   );
 
-    await this.cartItemRepository.remove(cartItem);
-    return this.findOne(userId);
-  }
+  //   if (!cartItem) {
+  //     throw new NotFoundException(
+  //       `Item with product size id ${productSizeId} not found in cart`,
+  //     );
+  //   }
+
+  //   await this.cartItemRepository.remove(cartItem);
+  //   return this.findOne(userId);
+  // }
 }
