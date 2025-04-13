@@ -19,9 +19,11 @@ import {
 import { Product, ProductSize } from "../types/product";
 import { cartApi } from "../services/cart";
 
+
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const result = useSelector((state: RootState) => state.cart);
   const [deliveryType, setDeliveryType] = useState<

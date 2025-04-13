@@ -5,6 +5,7 @@ import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/store';
 import { logout } from '../../store/slices/authSlice';
+import { clearCart } from '../../store/slices/cartSlice';
 
 interface UserMenuProps {
   isOpen: boolean;
@@ -18,7 +19,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ isOpen, onClose, className = '' }) 
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
   const handleLogout = () => {
+    logout()
     dispatch(logout());
+   dispatch(clearCart());
     onClose();
     navigate('/');
   };

@@ -28,6 +28,7 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
+      localStorage.clear();
     },
     updateUser: (state, action: PayloadAction<IUser>) => {
       state.user = action.payload;

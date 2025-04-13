@@ -50,3 +50,14 @@ export const refreshToken = async () => {
   }
 }
 
+
+export const logout = async () => {
+  try {
+    const response = await api.get("/auth/logout");
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "Refresh token failed" };
+  }
+}
+
+
