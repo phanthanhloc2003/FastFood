@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Product } from './product.entity';
+import { CartItem } from 'src/modules/cart/entity/cart-item.entity';
 
 
 @Entity('product_sizes')
@@ -17,4 +18,5 @@ export class ProductSize {
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
+
 }

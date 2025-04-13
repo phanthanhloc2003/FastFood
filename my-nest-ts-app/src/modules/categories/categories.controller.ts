@@ -18,8 +18,8 @@ import { Role } from 'src/common/enum/role.enum';
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  @Post()
-  @Roles(Role.Admin)
+    @Post()
+    @Roles(Role.Admin)
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
@@ -52,5 +52,5 @@ export class CategoriesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(+id);
-  }
+    }
 }

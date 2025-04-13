@@ -10,6 +10,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ProductModule } from './modules/product/product.module';
+import { CartModule } from './modules/cart/cart.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { ProductModule } from './modules/product/product.module';
     UsersControllerModule,
     AuthControllerModule,
     CategoriesModule,
-    ProductModule
+    ProductModule,
+    CartModule
   ],
   providers: [
     {

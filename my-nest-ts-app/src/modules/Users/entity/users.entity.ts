@@ -1,9 +1,11 @@
+import { Cart } from 'src/modules/cart/entity/cart.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToOne,
 } from 'typeorm';
 
 @Entity('users')
@@ -42,6 +44,9 @@ export class User {
 
   @Column({ type: 'enum', enum: ['male', 'female', 'other'], nullable: true })
   gender?: 'male' | 'female' | 'other';
+
+  @OneToOne(() => Cart, cart => cart.user)
+  cart: Cart;
 
   @CreateDateColumn()
   createdAt: Date;

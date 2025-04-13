@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, InternalServerErrorException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Product } from './entity/product.entity';
 import { CreateProductDto, UpdateProductDto } from './dto/create-product.dto';
@@ -25,7 +25,9 @@ export class ProductService {
     const product = await this.productRepository.create(productData);
 
     if (categoryId) {
-      const category = await this.categoryRepository.findOne({ where: { id: categoryId } });
+      const category = await this.categoryRepository.findOne({
+        where: { id: categoryId },
+      });
       if (!category) {
         throw new NotFoundException('Category not found');
       }
@@ -35,14 +37,14 @@ export class ProductService {
     const savedProduct = await this.productRepository.save(product);
 
     // Save sizes
-    const productSizes = sizes.map(size => ({
+    const productSizes = sizes.map((size) => ({
       ...size,
       product: savedProduct,
     }));
     await this.productSizeRepository.save(productSizes);
 
     // Save images
-    const productImages = images.map(url => ({
+    const productImages = images.map((url) => ({
       url,
       product: savedProduct,
     }));
@@ -70,12 +72,17 @@ export class ProductService {
     return product;
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
+  async update(
+    id: number,
+    updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
     const product = await this.findOne(id);
     const { categoryId, sizes, images, ...productData } = updateProductDto;
 
     if (categoryId) {
-      const category = await this.categoryRepository.findOne({ where: { id: categoryId } });
+      const category = await this.categoryRepository.findOne({
+        where: { id: categoryId },
+      });
       if (!category) {
         throw new NotFoundException('Category not found');
       }
@@ -83,21 +90,17 @@ export class ProductService {
     }
 
     Object.assign(product, productData);
-
-    // Update sizes
     if (sizes) {
       await this.productSizeRepository.delete({ product: { id } });
-      const productSizes = sizes.map(size => ({
+      const productSizes = sizes.map((size) => ({
         ...size,
         product,
       }));
       await this.productSizeRepository.save(productSizes);
     }
-
-    // Update images
     if (images) {
       await this.productImageRepository.delete({ product: { id } });
-      const productImages = images.map(url => ({
+      const productImages = images.map((url) => ({
         url,
         product,
       }));
@@ -128,4 +131,17 @@ export class ProductService {
       .leftJoinAndSelect('product.images', 'images')
       .getMany();
   }
+
+  async findBySize(id: number): Promise<ProductSize | null> {
+    try {
+      const productSize = await this.productSizeRepository.findOne({
+        where: { id },
+        relations: ['product'],
+      })
+      return productSize || null;
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve product size');
+    }
+  }
+  
 }
