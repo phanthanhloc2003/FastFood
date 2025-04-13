@@ -80,39 +80,36 @@ export class CartService {
         where: { user: { id: userId } },
         relations: ['user', 'items'],
       });
-         
-      if(!cart) return [];
-        const cartItem = await this.cartItemRepository.find({
-            where: {
-                cart: {
-                    user: {
-                        id: userId
-                    }
-                }
+
+      if (!cart) return [];
+      const cartItem = await this.cartItemRepository.find({
+        where: {
+          cart: {
+            user: {
+              id: userId,
             },
-            relations: {
-                productSize: {
-                    product: {
-                        sizes: true,
-                        images:true
-                    }
-                }
-            }
-        });
-        return cartItem.length === 0 ? null : cartItem;
+          },
+        },
+        relations: {
+          productSize: {
+            product: {
+              sizes: true,
+              images: true,
+            },
+          },
+        },
+      });
+      return cartItem.length === 0 ? null : cartItem;
     } catch (error) {
-        console.error('Error finding cart items:', error);
-        throw new Error('Failed to fetch cart items');
+      console.error('Error finding cart items:', error);
+      throw new Error('Failed to fetch cart items');
     }
-}
-  
-  
+  }
 
   // async remove(userId: number): Promise<void> {
   //   const cart = await this.findOne(userId);
   //   await this.cartRepository.remove(cart);
   // }
-
 
   // async updateItemQuantity(
   //   userId: number,
@@ -140,19 +137,32 @@ export class CartService {
   //   return this.findOne(userId);
   // }
 
-  // async removeItem(userId: number, productSizeId: number): Promise<Cart> {
-  //   const cart = await this.findOne(userId);
-  //   const cartItem = cart.items.find(
-  //     (item) => item.productSize.id === productSizeId,
-  //   );
+  async removeItem(email: string, sizeId: number) {
+   try {
+    const isUser = await this.userService.findOne(email);
+    if (!isUser) throw new NotFoundException('User not found');
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: isUser.id } },
+    });
+    if (!cart) throw new NotFoundException('Cart not found');
+    const cartItem = await this.cartItemRepository.findOne({
+      where: {
+        cart: { id: cart.id },
+        productSize: { id: sizeId },
+      },
+    });
 
-  //   if (!cartItem) {
-  //     throw new NotFoundException(
-  //       `Item with product size id ${productSizeId} not found in cart`,
-  //     );
-  //   }
+    if (!cartItem) {
+      throw new NotFoundException('Cart item not found');
+    }
 
-  //   await this.cartItemRepository.remove(cartItem);
-  //   return this.findOne(userId);
-  // }
+    await this.cartItemRepository.remove(cartItem);
+
+    return { message: 'Cart item deleted successfully' };
+    
+   } catch (error) {
+    console.error("err",error)
+    throw error;
+   }
+  }
 }

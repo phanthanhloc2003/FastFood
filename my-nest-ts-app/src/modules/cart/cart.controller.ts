@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   Put,
+  Patch,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { Cart } from './entity/cart.entity';
@@ -29,6 +30,9 @@ export class CartController {
   async findOne(@User() user: IUserNoPassWord) {
     return this.cartService.findOne(user.id);
   }
+
+  // @Patch('change-size')
+
 
   // @Delete()
   // async remove(@User() user: IUserNoPassWord): Promise<void> {
@@ -57,11 +61,11 @@ export class CartController {
   //   );
   // }
 
-  // @Delete('items/:productSizeId')
-  // async removeItem(
-  //   @User() user: IUserNoPassWord,
-  //   @Param('productSizeId') productSizeId: string,
-  // ): Promise<Cart> {
-  //   return this.cartService.removeItem(user.id, +productSizeId);
-  // }
+  @Delete('/:productSizeId')
+  async removeItem(
+    @User() user: IUserNoPassWord,
+    @Param('productSizeId') productSizeId: string,
+  ){
+    return this.cartService.removeItem(user.email, +productSizeId);
+  }
 }
