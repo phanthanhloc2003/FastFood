@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,7 +8,6 @@ import {
   updateQuantity,
   clearCart,
   updateItemSize,
-  addToCart,
 } from "../store/slices/cartSlice";
 import {
   TrashIcon,
@@ -17,13 +16,11 @@ import {
   PlusIcon,
 } from "@heroicons/react/24/outline";
 import { Product, ProductSize } from "../types/product";
-import { cartApi } from "../services/cart";
 
 
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const result = useSelector((state: RootState) => state.cart);
   const [deliveryType, setDeliveryType] = useState<
@@ -31,35 +28,6 @@ const Cart: React.FC = () => {
   >("Delivery");
   const [tableNumber, setTableNumber] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-   console.log("cartItems",cartItems.length)
-  useEffect(() => {
-    const fetchCartData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await cartApi.get();
-        if (data && data.length > 0) {
-          dispatch(clearCart());
-          data.forEach((item) => {
-            dispatch(addToCart({
-              product: item.productSize.product,
-              quantity: item.quantity,
-              size: item.productSize.size,
-              sizeId: item.productSize.id,
-              price: item.productSize.price,
-            }));
-          });
-        }
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu giỏ hàng:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    if (cartItems.length === 0) {
-      fetchCartData();
-    }
-  }, [dispatch]);
-
   const handleQuantityChange = async (
     productId: number,
     size: string,
