@@ -93,7 +93,8 @@ export class CartService {
             relations: {
                 productSize: {
                     product: {
-                        sizes: true
+                        sizes: true,
+                        images:true
                     }
                 }
             }
