@@ -20,17 +20,15 @@ export interface LoginResponse {
 }
 
 export interface Address {
-  id: string;
-  userId: string;
-  fullName: string;
+  id: number;
+  name: string;
   phone: string;
-  address: string;
-  city: string;
+  province: string;
   district: string;
   ward: string;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
+  address_line: string;
+  is_default: boolean;
+  created_at: string;
 }
 
 export interface OrderItem {

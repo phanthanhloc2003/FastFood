@@ -1,84 +1,91 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-
-interface Address {
-  id: string;
-  fullName: string;
-  phone: string;
-  address: string;
-  city: string;
-  district: string;
-  ward: string;
-  isDefault: boolean;
-}
+import { PencilIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { Address } from '../../types';
 
 interface AddressCardProps {
   address: Address;
-  isSelected?: boolean;
-  onSelect?: () => void;
-  onEdit?: () => void;
-  onDelete?: () => void;
+  onEdit: (address: Address) => void;
+  onDelete: (id: number) => void;
+  onSetDefault: (id: number) => void;
 }
 
 const AddressCard: React.FC<AddressCardProps> = ({
   address,
-  isSelected,
-  onSelect,
   onEdit,
   onDelete,
+  onSetDefault,
 }) => {
   return (
     <motion.div
-      whileHover={{ scale: 1.02 }}
-      className={`p-4 rounded-xl border-2 ${
-        isSelected ? 'border-red-500' : 'border-gray-200'
-      } cursor-pointer hover:shadow-md transition-all duration-200`}
-      onClick={onSelect}
+      layout
+      className={`bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 ${
+        address.is_default ? 'border-2 border-primary-main' : 'border border-gray-200'
+      }`}
     >
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <h3 className="font-semibold text-gray-900">{address.fullName}</h3>
-          <p className="text-gray-600">{address.phone}</p>
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="font-medium text-gray-800">{address.name}</h3>
+            {address.is_default && (
+              <motion.span 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-primary-main text-white rounded-full"
+              >
+                <CheckIcon className="w-3 h-3 mr-1" />
+                Mặc định
+              </motion.span>
+            )}
+          </div>
+          <p className="text-sm text-gray-600 mb-1">{address.phone}</p>
+          <p className="text-sm text-gray-600">
+            {address.address_line}, {address.ward}, {address.district}, {address.province}
+          </p>
         </div>
-        {address.isDefault && (
-          <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full">
-            Mặc định
-          </span>
-        )}
-      </div>
-
-      <p className="text-gray-700 mb-4">
-        {address.address}, {address.ward}, {address.district}, {address.city}
-      </p>
-
-      <div className="flex justify-end space-x-2">
-        {onEdit && (
+        
+        <div className="flex flex-col gap-2 ml-4">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
-              onEdit();
+              onEdit(address);
             }}
-            className="p-2 text-gray-600 hover:text-red-600 transition-colors"
+            className="p-1.5 text-gray-500 hover:text-primary-main transition-colors rounded-full hover:bg-primary-light/20"
           >
-            <PencilIcon className="h-5 w-5" />
+            <PencilIcon className="w-4 h-4" />
           </motion.button>
-        )}
-        {onDelete && (
+          
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
-              onDelete();
+              onDelete(address.id);
             }}
-            className="p-2 text-gray-600 hover:text-red-600 transition-colors"
+            className="p-1.5 text-gray-500 hover:text-red-600 transition-colors rounded-full hover:bg-red-50"
           >
-            <TrashIcon className="h-5 w-5" />
+            <TrashIcon className="w-4 h-4" />
           </motion.button>
-        )}
+          
+          {!address.is_default && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSetDefault(address.id);
+              }}
+              className="p-1.5 text-gray-500 hover:text-primary-main transition-colors rounded-full hover:bg-primary-light/20"
+            >
+              <CheckIcon className="w-4 h-4" />
+            </motion.button>
+          )}
+        </div>
       </div>
     </motion.div>
   );

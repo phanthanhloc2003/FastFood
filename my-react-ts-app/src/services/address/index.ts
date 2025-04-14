@@ -1,0 +1,26 @@
+
+import api from "../api";
+
+export const addressApi = {
+  // create: async (data: CategoryFormData) => {
+  //   const response = await api.post("/categories", data);
+  //   return response.data;
+  // },
+  getAll: async () => {
+    const response = await api.get("/address");
+    return response.data;
+  },
+  delete: async (id:number) => {
+    const response = await api.delete(`/address/${id}`);
+    return response.data;
+  },
+
+  setDefault: async (id:number) => {
+    const response = await api.put(`/address/${id}/default`);
+    return response.data;
+  },
+  // update: async (id: number, data: CategoryFormData) => {
+  //   const response = await api.patch(`/categories/${id}`, data);
+  //   return response.data;
+  // }
+};

@@ -3,44 +3,66 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import AddressForm from '../components/Address/AddressForm';
 import AddressCard from '../components/Address/AddressCard';
+import type { Address as adress } from '../types';
 
-interface Address {
-  id: string;
-  fullName: string;
+interface AddressFormData {
+  name: string;
   phone: string;
-  address: string;
-  city: string;
+  address_line: string;
+  province: string;
   district: string;
   ward: string;
-  isDefault: boolean;
+  is_default: boolean;
 }
 
-const Address: React.FC = () => {
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+ export const Address: React.FC = () => {
+  const [addresses, setAddresses] = useState<adress[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<adress | null>(null);
 
-  const handleAddAddress = (newAddress: Omit<Address, 'id'>) => {
-    const address = {
+  const handleAddAddress = (newAddress: AddressFormData) => {
+    const address: adress = {
       ...newAddress,
-      id: Date.now().toString(),
+      id: Date.now(),
+      created_at: new Date().toISOString(),
     };
 
-    if (newAddress.isDefault) {
+    if (newAddress.is_default) {
       setAddresses(prev =>
         prev.map(addr => ({
           ...addr,
-          isDefault: false,
+          is_default: false,
         }))
       );
     }
 
     setAddresses(prev => [...prev, address]);
-    setShowAddForm(false);
+    setShowForm(false);
   };
 
-  const handleDeleteAddress = (id: string) => {
+  const handleEditAddress = (updatedAddress: AddressFormData) => {
+    if (editingAddress) {
+      setAddresses(prev =>
+        prev.map(addr =>
+          addr.id === editingAddress.id ? { ...updatedAddress, id: editingAddress.id, created_at: editingAddress.created_at } : addr
+        )
+      );
+    }
+    setEditingAddress(null);
+    setShowForm(false);
+  };
+
+  const handleDeleteAddress = (id: number) => {
     setAddresses(prev => prev.filter(addr => addr.id !== id));
+  };
+
+  const handleSetDefault = (id: number) => {
+    setAddresses(prev =>
+      prev.map(addr => ({
+        ...addr,
+        is_default: addr.id === id,
+      }))
+    );
   };
 
   const containerVariants = {
@@ -59,7 +81,7 @@ const Address: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 pt-24 pb-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -73,8 +95,11 @@ const Address: React.FC = () => {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => setShowAddForm(true)}
-          className="w-full mb-8 p-4 flex items-center justify-center space-x-2 bg-white rounded-xl border-2 border-dashed border-gray-300 text-gray-600 hover:border-red-500 hover:text-red-500 transition-colors duration-200"
+          onClick={() => {
+            setEditingAddress(null);
+            setShowForm(true);
+          }}
+          className="w-full mb-8 p-4 flex items-center justify-center space-x-2 bg-white rounded-xl border-2 border-dashed border-gray-300 text-gray-600 hover:border-primary-main hover:text-primary-main transition-colors duration-200 shadow-sm"
         >
           <PlusIcon className="h-5 w-5" />
           <span>Thêm địa chỉ mới</span>
@@ -88,28 +113,26 @@ const Address: React.FC = () => {
         >
           <AnimatePresence>
             {addresses.map(address => (
-              <motion.div
+              <AddressCard
                 key={address.id}
-                variants={itemVariants}
-                layout
-                exit={{ opacity: 0, x: -100 }}
-              >
-                <AddressCard
-                  address={address}
-                  isSelected={selectedAddress === address.id}
-                  onSelect={() => setSelectedAddress(address.id)}
-                  onDelete={() => handleDeleteAddress(address.id)}
-                />
-              </motion.div>
+                address={address}
+                onEdit={setEditingAddress}
+                onDelete={handleDeleteAddress}
+                onSetDefault={handleSetDefault}
+              />
             ))}
           </AnimatePresence>
         </motion.div>
 
         <AnimatePresence>
-          {showAddForm && (
+          {showForm && (
             <AddressForm
-              onSubmit={handleAddAddress}
-              onClose={() => setShowAddForm(false)}
+              initialData={editingAddress}
+              onSubmit={editingAddress ? handleEditAddress : handleAddAddress}
+              onClose={() => {
+                setShowForm(false);
+                setEditingAddress(null);
+              }}
             />
           )}
         </AnimatePresence>

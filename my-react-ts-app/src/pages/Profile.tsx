@@ -7,11 +7,12 @@ import AvatarUploadModal from '../components/Profile/AvatarUploadModal';
 import ProfileTabs from '../components/Profile/ProfileTabs';
 import ProfileInfo from '../components/Profile/ProfileInfo';
 import OrderList from '../components/Profile/OrderList';
-import AddressList from '../components/Profile/AddressList';
 import ProfileSettings from '../components/Profile/ProfileSettings';
 import { Address, Order } from '../types';
 import { useNavigate } from 'react-router-dom';
 import usersApi from '../services/user';
+import AddressList from '../components/Profile/AddressList';
+import { addressApi } from '../services/address';
 
 interface User {
   id: number;
@@ -38,17 +39,18 @@ const Profile: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showAvatarUpload, setShowAvatarUpload] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Fetch user data, orders, and addresses here
         // const userData = await usersApi.getUserProfile();
         // const ordersData = await usersApi.getUserOrders();
-        // const addressesData = await usersApi.getUserAddresses();
+        const addressesData = await addressApi.getAll();
         // setOrders(ordersData);
-        // setAddresses(addressesData);
+        setAddresses(addressesData);
       } catch (err: any) {
         setError(err.message || 'Có lỗi xảy ra khi tải dữ liệu');
       } finally {
@@ -84,12 +86,24 @@ const Profile: React.FC = () => {
     navigate("/address");
   };
 
-  const handleEditAddress = (address: Address) => {
-    // Implement edit address logic
+  const handleDeleteAddress = async (address: Address) => {
+    try {
+      await addressApi.delete(address.id);
+      const updatedAddresses = await addressApi.getAll();
+      setAddresses(updatedAddresses);
+    } catch (err: any) {
+      setError(err.message || 'Có lỗi xảy ra khi xóa địa chỉ');
+    }
   };
 
-  const handleDeleteAddress = (address: Address) => {
-    // Implement delete address logic
+  const handleSetDefault = async (address: Address) => {
+    try {
+      await addressApi.setDefault(address.id);
+      const updatedAddresses = await addressApi.getAll();
+      setAddresses(updatedAddresses);
+    } catch (err: any) {
+      setError(err.message || 'Có lỗi xảy ra khi đặt địa chỉ mặc định');
+    }
   };
 
   const containerVariants = {
@@ -175,8 +189,8 @@ const Profile: React.FC = () => {
                     <AddressList
                       addresses={addresses}
                       onAddAddress={handleAddAddress}
-                      onEditAddress={handleEditAddress}
                       onDeleteAddress={handleDeleteAddress}
+                      onSetDefault={handleSetDefault}
                     />
                   )}
                   {activeTab === 'settings' && <ProfileSettings />}
