@@ -1,22 +1,50 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useParams } from 'react-router-dom';
-import PaymentMethodSelector from '../components/Payment/PaymentMethodSelector';
-import PaymentSummary from '../components/Payment/PaymentSummary';
-import OrderDetails from '../components/Payment/OrderDetails';
-import { PaymentMethod, PaymentStatus } from '../types/payment';
-import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate, useParams } from "react-router-dom";
+import PaymentMethodSelector from "../components/Payment/PaymentMethodSelector";
+import PaymentSummary from "../components/Payment/PaymentSummary";
+import OrderDetails from "../components/Payment/OrderDetails";
+import AddressModal from "../components/Payment/AddressModal";
+import { PaymentMethod, PaymentStatus } from "../types/payment";
+import { Address } from "../types/address";
+import { CheckCircleIcon, XCircleIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
+import { useSelector } from "react-redux";
+import { RootState } from "../store/store";
+import { addressApi } from "../services/address";
 
 const Payment: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('Cash');
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("Cash");
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [deliveryType, setDeliveryType] = useState<'table' | 'address'>('address');
-  const [tableNumber, setTableNumber] = useState<string>('');
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const deliveryType = useSelector((state: RootState) => state.cart.deliveryType);
+  const tableNumber = useSelector((state: RootState) => state.cart.tableNumber);
+  const cartItem = useSelector((state: RootState) => state.cart);
 
-  // Giả lập dữ liệu đơn hàng (trong thực tế sẽ lấy từ API)
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        const data = await addressApi.getAll();
+        setAddresses(data);
+        // Tự động chọn địa chỉ mặc định
+        const defaultAddress = data.find((addr: Address) => addr.is_default);
+        if (defaultAddress) {
+          setSelectedAddress(defaultAddress);
+        }
+      } catch (error) {
+        console.error("Error fetching addresses:", error);
+      }
+    };
+
+    if (deliveryType === "Delivery") {
+      fetchAddresses();
+    }
+  }, [deliveryType]);
+
   const orderData = {
     items: [
       {
@@ -24,34 +52,47 @@ const Payment: React.FC = () => {
         size: "Vừa",
         price: 89000,
         quantity: 2,
-        total: 178000
+        total: 178000,
       },
       {
         productName: "Gà rán",
         size: "Lớn",
         price: 59000,
         quantity: 1,
-        total: 59000
-      }
+        total: 59000,
+      },
     ],
     totalPrice: 237000,
     address: {
+      id: 0,
+      name: "Khách hàng",
+      phone: "0000000000",
       address_line: "123 ABC",
       ward: "Phường 1",
       district: "Quận 1",
-      city: "TP.HCM"
-    }
+      province: "TP.HCM",
+      is_default: false,
+      created_at: new Date().toISOString(),
+    },
   };
 
   const handlePayment = async () => {
+    if (deliveryType === "Delivery" && !selectedAddress) {
+      alert("Vui lòng chọn địa chỉ giao hàng");
+      return;
+    }
+
     setIsProcessing(true);
-    
-    // Giả lập xử lý thanh toán
     setTimeout(() => {
-      const success = Math.random() > 0.3; // 70% tỷ lệ thành công
-      setPaymentStatus(success ? 'Paid' : 'Failed');
+      const success = Math.random() > 0.3;
+      setPaymentStatus(success ? "Paid" : "Failed");
       setIsProcessing(false);
     }, 2000);
+  };
+
+  const handleAddNewAddress = () => {
+    navigate('/address')
+    console.log("Add new address");
   };
 
   const containerVariants = {
@@ -70,7 +111,7 @@ const Payment: React.FC = () => {
       opacity: 1,
       y: 0,
       transition: {
-        type: 'spring',
+        type: "spring",
         stiffness: 100,
       },
     },
@@ -80,7 +121,7 @@ const Payment: React.FC = () => {
     hover: {
       scale: 1.02,
       transition: {
-        type: 'spring',
+        type: "spring",
         stiffness: 400,
         damping: 10,
       },
@@ -107,16 +148,16 @@ const Payment: React.FC = () => {
           </motion.h1>
 
           <motion.div className="mb-8" variants={itemVariants}>
-            <OrderDetails 
-              items={orderData.items}
+            <OrderDetails
+              items={cartItem.items}
               totalPrice={orderData.totalPrice}
-              address={orderData.address}
+              address={selectedAddress || orderData.address}
               deliveryType={deliveryType}
               tableNumber={tableNumber}
+              onEditAddress={() => setIsAddressModalOpen(true)}
             />
           </motion.div>
-
-          <motion.div 
+          <motion.div
             className="bg-white rounded-xl shadow-md p-6 mb-8"
             variants={itemVariants}
           >
@@ -129,11 +170,14 @@ const Payment: React.FC = () => {
             />
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="bg-white rounded-xl shadow-md p-6 mb-8"
             variants={itemVariants}
           >
-            <PaymentSummary amount={orderData.totalPrice} orderId={Number(orderId)} />
+            <PaymentSummary
+              amount={cartItem.total}
+              orderId={Number(orderId)}
+            />
           </motion.div>
 
           <motion.div variants={itemVariants}>
@@ -149,15 +193,24 @@ const Payment: React.FC = () => {
                 <motion.div
                   className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                 />
               ) : paymentStatus ? (
-                'Hoàn tất'
+                "Hoàn tất"
               ) : (
-                'Thanh toán ngay'
+                "Thanh toán ngay"
               )}
             </motion.button>
           </motion.div>
+
+          <AddressModal
+            isOpen={isAddressModalOpen}
+            onClose={() => setIsAddressModalOpen(false)}
+            addresses={addresses}
+            selectedAddress={selectedAddress}
+            onSelectAddress={setSelectedAddress}
+            onAddNewAddress={handleAddNewAddress}
+          />
 
           <AnimatePresence>
             {paymentStatus && (
@@ -172,14 +225,18 @@ const Payment: React.FC = () => {
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.8, opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
                 >
-                  {paymentStatus === 'Paid' ? (
+                  {paymentStatus === "Paid" ? (
                     <>
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 200,
+                          damping: 20,
+                        }}
                       >
                         <CheckCircleIcon className="w-20 h-20 text-green-500 mx-auto mb-4" />
                       </motion.div>
@@ -187,7 +244,8 @@ const Payment: React.FC = () => {
                         Thanh toán thành công!
                       </h3>
                       <p className="text-gray-600 mb-6">
-                        Cảm ơn bạn đã mua hàng. Chúng tôi sẽ xử lý đơn hàng của bạn ngay lập tức.
+                        Cảm ơn bạn đã mua hàng. Chúng tôi sẽ xử lý đơn hàng của
+                        bạn ngay lập tức.
                       </p>
                     </>
                   ) : (
@@ -195,7 +253,11 @@ const Payment: React.FC = () => {
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 200,
+                          damping: 20,
+                        }}
                       >
                         <XCircleIcon className="w-20 h-20 text-red-500 mx-auto mb-4" />
                       </motion.div>
@@ -203,7 +265,8 @@ const Payment: React.FC = () => {
                         Thanh toán thất bại
                       </h3>
                       <p className="text-gray-600 mb-6">
-                        Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại.
+                        Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng
+                        thử lại.
                       </p>
                     </>
                   )}
@@ -213,14 +276,14 @@ const Payment: React.FC = () => {
                     whileHover="hover"
                     whileTap="tap"
                     onClick={() => {
-                      if (paymentStatus === 'Paid') {
-                        navigate('/orders');
+                      if (paymentStatus === "Paid") {
+                        navigate("/orders");
                       } else {
                         setPaymentStatus(null);
                       }
                     }}
                   >
-                    {paymentStatus === 'Paid' ? 'Xem đơn hàng' : 'Thử lại'}
+                    {paymentStatus === "Paid" ? "Xem đơn hàng" : "Thử lại"}
                   </motion.button>
                 </motion.div>
               </motion.div>
@@ -232,4 +295,4 @@ const Payment: React.FC = () => {
   );
 };
 
-export default Payment; 
+export default Payment;

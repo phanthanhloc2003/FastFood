@@ -75,10 +75,10 @@ interface AddressFormData {
     },
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  };
+  // const itemVariants = {
+  //   hidden: { opacity: 0, y: 20 },
+  //   visible: { opacity: 1, y: 0 },
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 pt-24 pb-12">

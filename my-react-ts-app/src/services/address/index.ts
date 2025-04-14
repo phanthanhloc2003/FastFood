@@ -1,4 +1,3 @@
-
 import api from "../api";
 
 export const addressApi = {
@@ -10,17 +9,17 @@ export const addressApi = {
     const response = await api.get("/address");
     return response.data;
   },
-  delete: async (id:number) => {
+  delete: async (id: number) => {
     const response = await api.delete(`/address/${id}`);
     return response.data;
   },
 
-  setDefault: async (id:number) => {
+  setDefault: async (id: number) => {
     const response = await api.put(`/address/${id}/default`);
     return response.data;
   },
-  // update: async (id: number, data: CategoryFormData) => {
-  //   const response = await api.patch(`/categories/${id}`, data);
-  //   return response.data;
-  // }
+  finOne: async (id: number) => {
+    const response = await api.get(`/address/${id}`);
+    return response.data;
+  },
 };

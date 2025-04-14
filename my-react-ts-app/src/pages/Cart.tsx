@@ -8,6 +8,7 @@ import {
   updateQuantity,
   clearCart,
   updateItemSize,
+  paymets,
 } from "../store/slices/cartSlice";
 import {
   TrashIcon,
@@ -68,43 +69,8 @@ const Cart: React.FC = () => {
   };
 
   const handleCheckout = async () => {
-    try {
-      setIsLoading(true);
-      const orderData = {
-        user_id: 1,
-        table_number: deliveryType === "Dine-in" ? tableNumber : null,
-        address_id: deliveryType === "Delivery" ? 1 : null,
-        delivery_type: deliveryType,
-        status: "Pending",
-        total_price: result.total,
-        items: cartItems.map((item) => ({
-          product_id: item.product.id,
-          size_id: item.sizeId,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-      };
-
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      if (response.ok) {
-        // await cartApi.clear();
-        dispatch(clearCart());
-        navigate("/checkout/success");
-      } else {
-        console.error("Lỗi khi tạo đơn hàng");
-      }
-    } catch (error) {
-      console.error("Lỗi khi tạo đơn hàng:", error);
-    } finally {
-      setIsLoading(false);
-    }
+       dispatch(paymets({deliveryType, tableNumber}))
+       navigate('/payment')
   };
 
   const hanldeRemoveOrderItem = async (
