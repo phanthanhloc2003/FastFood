@@ -25,7 +25,6 @@ export const databaseProviders = [
   },
 ];
 
-
 // import { DataSource } from 'typeorm';
 
 // export const databaseProviders = [

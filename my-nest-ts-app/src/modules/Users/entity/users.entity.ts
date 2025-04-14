@@ -1,3 +1,5 @@
+
+import { Address } from 'src/modules/adrress/entity/address.entity';
 import { Cart } from 'src/modules/cart/entity/cart.entity';
 import {
   Entity,
@@ -6,6 +8,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToOne,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('users')
@@ -36,16 +39,16 @@ export class User {
   })
   role?: 'user' | 'admin';
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
-  address?: string;
-
+  @OneToMany(() => Address, (userAddress) => userAddress.user)
+  addresses: Address[];
+  
   @Column({ type: 'date', nullable: true })
   dateOfBirth?: Date;
 
   @Column({ type: 'enum', enum: ['male', 'female', 'other'], nullable: true })
   gender?: 'male' | 'female' | 'other';
 
-  @OneToOne(() => Cart, cart => cart.user)
+  @OneToOne(() => Cart, (cart) => cart.user)
   cart: Cart;
 
   @CreateDateColumn()

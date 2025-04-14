@@ -11,6 +11,7 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ProductModule } from './modules/product/product.module';
 import { CartModule } from './modules/cart/cart.module';
+import { AddressModule } from './modules/adrress/address.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { CartModule } from './modules/cart/cart.module';
     AuthControllerModule,
     CategoriesModule,
     ProductModule,
-    CartModule
+    CartModule,
+    AddressModule
   ],
   providers: [
     {
