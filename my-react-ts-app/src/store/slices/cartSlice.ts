@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Product } from "../../types/product";
+import { DeliveryType } from "../../services/order";
 
  export interface CartItem {
   product: Product;
@@ -8,19 +9,13 @@ import { Product } from "../../types/product";
   sizeId: number;
   price: number;
 }
-
 export interface CartState {
   items: CartItem[];
   total: number;
-  deliveryType:  "Dine-in" | "Take-away" | "Delivery";
-  tableNumber: number | null;
 }
-
 const initialState: CartState = {
   items: [],
   total: 0,
-  deliveryType: "Take-away",
-  tableNumber: null,
 };
 
 const cartSlice = createSlice({
@@ -126,20 +121,6 @@ const cartSlice = createSlice({
     clearCart: (state) => {
       state.items = [];
       state.total = 0;
-      state.deliveryType = "Take-away";
-      state.tableNumber = null;
-    },
-
-    paymets: (
-      state,
-      action: PayloadAction<{
-        deliveryType:  "Dine-in" | "Take-away" | "Delivery";
-        tableNumber: number | null;
-      }>
-    ) => {
-      const { deliveryType, tableNumber } = action.payload;
-      state.deliveryType = deliveryType;
-      state.tableNumber = tableNumber;
     },
   },
 });
@@ -150,6 +131,5 @@ export const {
   updateQuantity,
   updateItemSize,
   clearCart,
-  paymets,
 } = cartSlice.actions;
 export default cartSlice.reducer;

@@ -1,3 +1,4 @@
+import { Address } from "./address";
 import { IResProductSize} from "./product";
 
 export interface IAddCart {
@@ -6,8 +7,22 @@ export interface IAddCart {
 }
 
 export interface CartItemResponse {
-  id: number;
-  productSize:IResProductSize;
+  id?:string;
+  productSize: IResProductSize;
   quantity: number;
-  addedAt: string;
+  size: string;
+  price:number;
+}
+
+export interface Table {
+  id: number;
+  table_number: string;
+  capacity: number;
+}
+
+export interface CheckoutResponse {
+  cart: CartItemResponse[];
+  totalPrice: number;
+  address: Address[] | null;
+  table: Table | null;
 }

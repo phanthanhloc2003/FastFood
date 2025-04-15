@@ -25,9 +25,6 @@ const Menu: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  
-
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -61,13 +58,11 @@ const Menu: React.FC = () => {
     fetchProducts();
     fetchCategories();
   }, []);
-
   const filteredItems = products.filter((item) => {
     const matchesCategory = !selectedCategory || item.categoryId.id === selectedCategory.id;
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
-
    const handleAddToCart = async (
      product: Product,
      size: ProductSize,

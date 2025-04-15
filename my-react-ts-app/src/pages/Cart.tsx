@@ -8,7 +8,6 @@ import {
   updateQuantity,
   clearCart,
   updateItemSize,
-  paymets,
 } from "../store/slices/cartSlice";
 import {
   TrashIcon,
@@ -18,6 +17,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Product, ProductSize } from "../types/product";
 import { cartApi } from "../services/cart";
+import { payment } from "../types/orderStatus";
 
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
@@ -69,8 +69,13 @@ const Cart: React.FC = () => {
   };
 
   const handleCheckout = async () => {
-       dispatch(paymets({deliveryType, tableNumber}))
-       navigate('/payment')
+    const data: payment = {
+      deliveryType: deliveryType,
+      tableId: tableNumber,
+    };
+    const jsonData = JSON.stringify(data);
+    localStorage.setItem("orderData", jsonData);
+    navigate("/payment");
   };
 
   const hanldeRemoveOrderItem = async (
@@ -92,9 +97,8 @@ const Cart: React.FC = () => {
       await cartApi.removeAllCart();
       dispatch(clearCart());
     } catch (error) {
-      console.error("er",error)
+      console.error("er", error);
     }
-  
   };
   const containerVariants = {
     hidden: { opacity: 0 },

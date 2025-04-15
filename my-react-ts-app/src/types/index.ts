@@ -1,4 +1,4 @@
-import { Product } from './product';
+import { IResProductSize, Product } from './product';
 
 export interface IUser {
   id: number;
@@ -53,11 +53,23 @@ export interface Order {
 }
 
 export interface CartItem {
+  id?:string;
   product: Product;
   quantity: number;
   size: string;
   price:number;
 }
+
+
+
+export interface CartItemResponce {
+  id?:string;
+  productSize: IResProductSize;
+  quantity: number;
+  size: string;
+  price:number;
+}
+
 
 export interface Cart {
   items: CartItem[];
