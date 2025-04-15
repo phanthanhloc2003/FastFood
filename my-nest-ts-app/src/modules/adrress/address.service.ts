@@ -17,7 +17,7 @@ export class AddressService {
     private addressRepository: Repository<Address>,
   ) {}
 
-  async create(email: string, body: CreateAddressDto) {
+  async create(email: string, body: CreateAddressDto): Promise<string> {
     try {
       const user = await this.userService.findOne(email);
       if (!user) {
@@ -29,17 +29,18 @@ export class AddressService {
           { is_default: false },
         );
       }
-      const address = this.addressRepository.create({
+      const address = await this.addressRepository.create({
         ...body,
         user,
       });
-      return this.addressRepository.save(address);
+      await this.addressRepository.save(address);
+      return 'tạo địa chỉ mới thành công';
     } catch (error) {
       console.error('Create address error:', error);
       throw error;
     }
   }
-  async findAll(email: string):Promise<Address[] | null> {
+  async findAll(email: string): Promise<Address[] | null> {
     try {
       const user = await this.userService.findOne(email);
       if (!user) {

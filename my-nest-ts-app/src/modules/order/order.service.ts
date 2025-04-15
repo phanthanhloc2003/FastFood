@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+
 import { Address } from '../adrress/entity/address.entity';
 import { AddressService } from '../adrress/address.service';
 import { IUserNoPassWord } from '../Users/interfaces/user.interface';
@@ -15,12 +10,17 @@ import { Order } from './entity/order.entity';
 import { UserService } from '../Users/users.service';
 import { OrderItem } from './entity/order-item.entity';
 import { Payment } from './entity/payment.entity';
+import { emailTransporter } from 'src/config/email.config';
+import { NotificationService } from '../notification/notification.service';
+import { OrderStatusLog } from './entity/order-status-log.entity';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 @Injectable()
 export class OrderService {
   constructor(
     private addressService: AddressService,
     private cartService: CartService,
     private userService: UserService,
+    private notificationService:NotificationService,
     @Inject('TABLE_REPOSITORY')
     private tableRepository: Repository<Table>,
     @Inject('ORDER_REPOSITORY')
@@ -29,6 +29,8 @@ export class OrderService {
     private orderItemRepository: Repository<OrderItem>,
     @Inject('PAYMENT_REPOSITORY')
     private paymentRepository: Repository<Payment>,
+    @Inject('OEDERSTATUSLOG_REPOSITORY')
+    private orderStatusLogRepository: Repository<OrderStatusLog>,
   ) {}
 
   async validateOrderPreparation(
@@ -100,11 +102,11 @@ export class OrderService {
   async createOrder(
     user: IUserNoPassWord,
     createOrderDto: CreateOrderDto,
-  ): Promise< { mess: string } > {
+  ): Promise<{ mess: string }> {
     try {
       const { deliveryType, addressId, tableId, paymentMethod } =
         createOrderDto;
-      // Lấy thông tin user
+
       const currentUser = await this.userService.findOne(user.email);
       if (!currentUser) {
         throw new BadRequestException('Không tìm thấy người dùng');
@@ -137,12 +139,21 @@ export class OrderService {
         order_code: await this.generateOrderCode(),
         user: currentUser,
         address: address ?? undefined,
-        table_number: table?.table_number ?? undefined,
+        table_number: table?.id ?? undefined,
         delivery_type: deliveryType,
         status: 'Pending',
         total_price: totalPrice,
       });
       const savedOrder = await this.orderRepository.save(order);
+
+      await this.orderStatusLogRepository.save(
+        this.orderStatusLogRepository.create({
+          order: savedOrder,
+          status: 'Pending',
+          message: 'Order created',
+        }),
+      );
+      
       const orderItems = cart.map((item) =>
         this.orderItemRepository.create({
           order: savedOrder,
@@ -161,6 +172,31 @@ export class OrderService {
         status: 'Pending',
       });
       await this.paymentRepository.manager.save(payment);
+
+      await this.notificationService.createAdminNotification(savedOrder, 'new_order', {
+        message: `New order ${savedOrder.order_code} has been placed with total ${savedOrder.total_price}`,
+      });
+      const totalPriceFormatted = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+      }).format(savedOrder.total_price);
+      
+      
+      await emailTransporter.sendMail({
+        from: '"Your Company Name" <phanthanhloc11112003@gmail.com>',
+        to: currentUser.email,
+        subject: `Order Confirmation: ${savedOrder.order_code}`,
+        text: `Dear ${currentUser.fullName},\n\nThank you for your order ${savedOrder.order_code}.\nTotal: ${totalPriceFormatted}\n\nWe appreciate your business!\nYour Company Name\nContact: support@yourcompany.com`,
+        html: `
+          <h2>Order Confirmation</h2>
+          <p>Dear ${currentUser.fullName},</p>
+          <p>Thank you for your order <strong>${savedOrder.order_code}</strong>.</p>
+          <p>Total: ${savedOrder.total_price}</p>
+          <p>We appreciate your business!</p>
+          <p>Best regards,<br>Your Company Name<br>Contact: <a href="mailto:support@yourcompany.com">support@yourcompany.com</a></p>
+        `,
+      });
+      
       await this.cartService.clearCart(user);
       return { mess: 'thanh toán thành công' };
     } catch (error) {

@@ -6,8 +6,9 @@ import { DatabaseModule } from "src/db/database.module";
 import { orderProviders } from "./providers/orderProviders";
 import { CartModule } from "../cart/cart.module";
 import { UsersControllerModule } from "../Users/users.module";
+import { NotificationModule } from "../notification/notification.module";
 @Module({
-  imports: [DatabaseModule, AddressModule,CartModule,UsersControllerModule],
+  imports: [DatabaseModule, AddressModule,CartModule,UsersControllerModule,NotificationModule],
   controllers: [OrderController],
   providers: [OrderService , ...orderProviders],
   exports: [OrderService],

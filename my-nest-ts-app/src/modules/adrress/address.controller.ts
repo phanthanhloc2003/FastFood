@@ -11,6 +11,7 @@ export class AddressController {
   constructor(private addressService: AddressService) {}
 
   @Post()
+  @HttpCode(HttpStatus.OK)
   create(@User() user: IUserNoPassWord, @Body() body: CreateAddressDto) {
     return this.addressService.create(user.email, body);
   }

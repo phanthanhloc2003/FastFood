@@ -1,4 +1,10 @@
-import { ConflictException, Inject, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create.users.dto';
 import { IUserNoPassWord } from './interfaces/user.interface';
@@ -40,16 +46,26 @@ export class UserService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async updateAvatar(email: string, file: Express.Multer.File): Promise<IUserNoPassWord> {
+  async updateAvatar(
+    email: string,
+    file: Express.Multer.File,
+  ): Promise<IUserNoPassWord> {
     if (!file) {
       throw new BadRequestException('Không có file được tải lên');
     }
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif',  'image/heic',
-      'image/heif',];
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/heic',
+      'image/heif',
+    ];
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      throw new BadRequestException('Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG hoặc GIF');
+      throw new BadRequestException(
+        'Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG hoặc GIF',
+      );
     }
-    const maxSize = 5 * 1024 * 1024; 
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       throw new BadRequestException('Kích thước file quá lớn. Tối đa 5MB');
     }
@@ -60,7 +76,6 @@ export class UserService {
     }
 
     try {
-      
       if (user.avatar) {
         const publicId = user.avatar.split('/').pop()?.split('.')[0];
         if (publicId) {
@@ -70,25 +85,30 @@ export class UserService {
       const uploadResult = await this.cloudinaryService.uploadImage(file);
       user.avatar = uploadResult.secure_url;
       const updatedUser = await this.userRepository.save(user);
-    
+
       const { password: _, ...userWithoutPassword } = updatedUser;
       return userWithoutPassword;
     } catch (error) {
-      throw new BadRequestException('Lỗi khi cập nhật avatar: ' + error.message);
+      throw new BadRequestException(
+        'Lỗi khi cập nhật avatar: ' + error.message,
+      );
     }
   }
 
   async findAll(user: IUserNoPassWord): Promise<IUserNoPassWord[]> {
     const users = await this.userRepository.find();
     return users
-      .filter(u => u.id !== user.id)
-      .map(user => {
+      .filter((u) => u.id !== user.id)
+      .map((user) => {
         const { password, ...userWithoutPassword } = user;
         return userWithoutPassword;
       });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<IUserNoPassWord> {
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<IUserNoPassWord> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException('Không tìm thấy người dùng');
@@ -107,4 +127,11 @@ export class UserService {
     }
     await this.userRepository.remove(user);
   }
+
+  async findOneAdmin() {
+    return await this.userRepository.findOne({
+      where: { role: 'admin' }
+    });
+  }
+  
 }

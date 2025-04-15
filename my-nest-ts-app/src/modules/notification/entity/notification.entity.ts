@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn } from 'typeorm';
-import { Order } from './order.entity';
 import { User } from 'src/modules/Users/entity/users.entity';
+import { Order } from 'src/modules/order/entity/order.entity';
 
 @Entity('notifications')
 export class Notification {

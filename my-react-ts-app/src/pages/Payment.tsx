@@ -8,12 +8,14 @@ import AddressModal from "../components/Payment/AddressModal";
 import { PaymentMethod, PaymentStatus } from "../types/payment";
 import { Address } from "../types/address";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { DeliveryType, orderApi } from "../services/order";
 import { CheckoutResponse } from "../types/cart";
 import { payment, PaymentMethod as OrderPaymentMethod } from "../types/orderStatus";
+import { clearCart } from "../store/slices/cartSlice";
 const Payment: React.FC = () => {
+  const dispatch = useDispatch();
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("Cash");
@@ -24,9 +26,8 @@ const Payment: React.FC = () => {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  const [dataCheckOut, setDataCheckOut] = useState<CheckoutResponse | null>(
-    null
-  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [dataCheckOut, setDataCheckOut] = useState<CheckoutResponse | null>(null);
   const cartItem = useSelector((state: RootState) => state.cart);
 
   const retrievedData: string | null = localStorage.getItem("orderData");
@@ -39,19 +40,26 @@ const Payment: React.FC = () => {
   }
   useEffect(() => {
     const fectData = async () => {
-      const checkout = await orderApi.checkout({ deliveryType, tableId });
-      if (!checkout) {
-        navigate("/");
-      }
-      setDataCheckOut(checkout);
-      if (checkout?.address) {
-        setAddresses(checkout.address);
-        const defaultAddress = checkout?.address.find(
-          (addr: Address) => addr.is_default
-        );
-        if (defaultAddress) {
-          setSelectedAddress(defaultAddress);
+      try {
+        setIsLoading(true);
+        const checkout = await orderApi.checkout({ deliveryType, tableId });
+        if (!checkout) {
+          navigate("/");
         }
+        setDataCheckOut(checkout);
+        if (checkout?.address) {
+          setAddresses(checkout.address);
+          const defaultAddress = checkout?.address.find(
+            (addr: Address) => addr.is_default
+          );
+          if (defaultAddress) {
+            setSelectedAddress(defaultAddress);
+          }
+        }
+      } catch (error) {
+        navigate("/");
+      } finally {
+        setIsLoading(false);
       }
     };
     fectData();
@@ -67,10 +75,9 @@ const Payment: React.FC = () => {
       });
 
       if (response) {
+        dispatch(clearCart());
         setPaymentStatus("Paid");
-        // Xóa giỏ hàng sau khi thanh toán thành công
-        localStorage.removeItem("cart");
-        // Chuyển hướng sau 2 giây
+        localStorage.removeItem("orderData");
         setTimeout(() => {
           navigate("/orders");
         }, 2000);
@@ -134,7 +141,64 @@ const Payment: React.FC = () => {
 
   return (
     <>
-      {dataCheckOut && (
+      {isLoading ? (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <motion.div
+            className="flex flex-col items-center gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              className="w-16 h-16 border-4 border-primary-main border-t-transparent rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            />
+            <motion.h2
+              className="text-xl font-bold text-gray-900"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              Đang tải dữ liệu...
+            </motion.h2>
+            <motion.p
+              className="text-gray-600"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              Vui lòng đợi trong giây lát
+            </motion.p>
+            <motion.div
+              className="flex items-center justify-center gap-2 mt-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <motion.div
+                className="w-2 h-2 bg-primary-main rounded-full"
+                animate={{ scale: [1, 1.5, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              />
+              <motion.div
+                className="w-2 h-2 bg-primary-main rounded-full"
+                animate={{ scale: [1, 1.5, 1] }}
+                transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+              />
+              <motion.div
+                className="w-2 h-2 bg-primary-main rounded-full"
+                animate={{ scale: [1, 1.5, 1] }}
+                transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+              />
+            </motion.div>
+          </motion.div>
+        </div>
+      ) : dataCheckOut ? (
         <div className="min-h-screen bg-gray-50 py-12">
           <div className="container mx-auto px-4">
             <motion.div
@@ -185,7 +249,7 @@ const Payment: React.FC = () => {
 
               <motion.div variants={itemVariants}>
                 <motion.button
-                  className="w-full bg-primary-main text-white py-4 rounded-xl font-medium text-lg flex items-center justify-center"
+                  className="w-full bg-primary-main text-white py-4 rounded-xl font-medium text-lg flex items-center justify-center relative overflow-hidden"
                   variants={buttonVariants}
                   whileHover="hover"
                   whileTap="tap"
@@ -193,19 +257,42 @@ const Payment: React.FC = () => {
                   disabled={isProcessing || paymentStatus !== null}
                 >
                   {isProcessing ? (
-                    <motion.div
-                      className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"
-                      animate={{ rotate: 360 }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        ease: "linear",
-                      }}
-                    />
+                    <motion.div className="flex items-center gap-2">
+                      <motion.div
+                        className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                      />
+                      <motion.span
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        Đang xử lý...
+                      </motion.span>
+                    </motion.div>
                   ) : paymentStatus ? (
                     "Hoàn tất"
                   ) : (
-                    "Thanh toán ngay"
+                    <>
+                      <motion.span
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        Thanh toán ngay
+                      </motion.span>
+                      <motion.div
+                        className="absolute inset-0 bg-white/20"
+                        initial={{ width: 0 }}
+                        whileHover={{ width: "100%" }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </>
                   )}
                 </motion.button>
               </motion.div>
@@ -310,10 +397,84 @@ const Payment: React.FC = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              <AnimatePresence>
+                {isProcessing && (
+                  <motion.div
+                    className="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <motion.div
+                      className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.8, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                    >
+                      <motion.div
+                        className="flex flex-col items-center justify-center"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <motion.div
+                          className="w-16 h-16 border-4 border-primary-main border-t-transparent rounded-full mb-4"
+                          animate={{ rotate: 360 }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                            ease: "linear",
+                          }}
+                        />
+                        <motion.h3
+                          className="text-xl font-bold text-gray-900 mb-2"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.3 }}
+                        >
+                          Đang xử lý thanh toán
+                        </motion.h3>
+                        <motion.p
+                          className="text-gray-600"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.4 }}
+                        >
+                          Vui lòng đợi trong giây lát...
+                        </motion.p>
+                        <motion.div
+                          className="flex items-center justify-center gap-2 mt-4"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.5 }}
+                        >
+                          <motion.div
+                            className="w-2 h-2 bg-primary-main rounded-full"
+                            animate={{ scale: [1, 1.5, 1] }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                          />
+                          <motion.div
+                            className="w-2 h-2 bg-primary-main rounded-full"
+                            animate={{ scale: [1, 1.5, 1] }}
+                            transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                          />
+                          <motion.div
+                            className="w-2 h-2 bg-primary-main rounded-full"
+                            animate={{ scale: [1, 1.5, 1] }}
+                            transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+                          />
+                        </motion.div>
+                      </motion.div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           </div>
         </div>
-      )}
+      ) : null}
     </>
   );
 };

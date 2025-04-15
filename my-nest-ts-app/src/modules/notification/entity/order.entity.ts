@@ -6,8 +6,8 @@ import { Payment } from './payment.entity';
 import { User } from 'src/modules/Users/entity/users.entity';
 import { Address } from 'src/modules/adrress/entity/address.entity';
 import { OrderItem } from './order-item.entity';
+import { Notification } from './notification.entity';
 import { Table } from './table.entity';
-import { Notification } from 'src/modules/notification/entity/notification.entity';
 
 
 @Entity('orders')

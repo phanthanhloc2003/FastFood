@@ -1,10 +1,11 @@
+import { AddressFormData } from "../../pages/Address";
 import api from "../api";
 
 export const addressApi = {
-  // create: async (data: CategoryFormData) => {
-  //   const response = await api.post("/categories", data);
-  //   return response.data;
-  // },
+  create: async (data: AddressFormData) => {
+    const response = await api.post("/address", data);
+    return response.data;
+  },
   getAll: async () => {
     const response = await api.get("/address");
     return response.data;

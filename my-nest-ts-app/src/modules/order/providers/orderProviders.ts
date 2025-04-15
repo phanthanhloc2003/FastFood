@@ -1,4 +1,4 @@
-import { Notification } from "../entity/notification.entity";
+
 import { OrderItem } from "../entity/order-item.entity";
 import { OrderStatusLog } from "../entity/order-status-log.entity";
 import { Order } from "../entity/order.entity";
@@ -19,11 +19,6 @@ export const orderProviders = [
   {
     provide: 'PAYMENT_REPOSITORY',
     useFactory: (dataSource: { getRepository: (arg0: typeof Payment) => any; }) => dataSource.getRepository(Payment),
-    inject: ['DATA_SOURCE'],
-  },
-  {
-    provide: 'NOTIFICATION_REPOSITORY',
-    useFactory: (dataSource: { getRepository: (arg0: typeof Notification) => any; }) => dataSource.getRepository(Notification),
     inject: ['DATA_SOURCE'],
   },
   {
