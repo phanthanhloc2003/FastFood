@@ -1,61 +1,58 @@
-// import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-// @Entity('orders')
-// export class Order {
-//   @PrimaryGeneratedColumn()
-//   id: number;
+import { OrderStatusLog } from './order-status-log.entity';
+import { OrderHistory } from './order-history.entity';
+import { Payment } from './payment.entity';
+import { User } from 'src/modules/Users/entity/users.entity';
+import { Address } from 'src/modules/adrress/entity/address.entity';
+import { OrderItem } from './order-item.entity';
+import { Notification } from './notification.entity';
 
-//   @Column({ type: 'varchar', length: 50, unique: true })
-//   order_code: string;
 
-//   @ManyToOne(() => User, user => user.orders, { onDelete: 'SET NULL' })
-//   @JoinColumn({ name: 'user_id' })
-//   user: User;
+@Entity('orders')
+export class Order {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-//   @Column({ type: 'int' })
-//   table_number: number;
+  @Column({ type: 'varchar', length: 50, unique: true })
+  order_code: string;
 
-//   @ManyToOne(() => UserAddress, { onDelete: 'SET NULL' })
-//   @JoinColumn({ name: 'address_id' })
-//   address: UserAddress;
+  @ManyToOne(() => User, (user) => user.orders, { nullable: true, onDelete: 'SET NULL' })
+  user: User;
 
-//   @Column({
-//     type: 'varchar',
-//     length: 20,
-//     default: 'Delivery',
-//     enum: ['Dine-in', 'Take-away', 'Delivery'],
-//   })
-//   delivery_type: string;
+  @Column({ type: 'int', nullable: true })
+  table_number: number;
 
-//   @Column({
-//     type: 'varchar',
-//     length: 50,
-//     default: 'Pending',
-//     enum: ['Pending', 'Completed', 'Cancelled'],
-//   })
-//   status: string;
+  @ManyToOne(() => Address, { nullable: true, onDelete: 'SET NULL' })
+  address: Address;
 
-//   @Column({ type: 'decimal', precision: 10, scale: 2 })
-//   total_price: number;
+  @Column({ type: 'varchar', length: 20, default: 'Delivery' })
+  delivery_type: 'Dine-in' | 'Take-away' | 'Delivery';
 
-//   @CreateDateColumn()
-//   created_at: Date;
+  @Column({ type: 'varchar', length: 50, default: 'Pending' })
+  status: 'Pending' | 'Completed' | 'Cancelled';
 
-//   @UpdateDateColumn()
-//   updated_at: Date;
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  total_price: number;
 
-//   @OneToMany(() => OrderStatusLog, log => log.order)
-//   statusLogs: OrderStatusLog[];
+  @CreateDateColumn()
+  created_at: Date;
 
-//   @OneToMany(() => OrderItem, item => item.order)
-//   items: OrderItem[];
+  @UpdateDateColumn()
+  updated_at: Date;
 
-//   @OneToMany(() => OrderHistory, history => history.order)
-//   histories: OrderHistory[];
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
+  items: OrderItem[];
 
-//   @OneToMany(() => Payment, payment => payment.order)
-//   payments: Payment[];
+  @OneToMany(() => OrderStatusLog, (log) => log.order)
+  statusLogs: OrderStatusLog[];
 
-//   @OneToMany(() => Notification, notification => notification.order)
-//   notifications: Notification[];
-// }
+  @OneToMany(() => OrderHistory, (history) => history.order)
+  histories: OrderHistory[];
+
+  @OneToMany(() => Payment, (payment) => payment.order)
+  payments: Payment[];
+
+  @OneToMany(() => Notification, (notification) => notification.order)
+  notifications: Notification[];
+}

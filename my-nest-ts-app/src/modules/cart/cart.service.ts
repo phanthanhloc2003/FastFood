@@ -6,7 +6,7 @@ import {
   InternalServerErrorException,
   BadRequestException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, Table } from 'typeorm';
 import { Cart } from './entity/cart.entity';
 import { CartItem } from './entity/cart-item.entity';
 import { ProductSize } from '../product/entity/product-size.entity';
@@ -14,6 +14,7 @@ import { IUserNoPassWord } from '../Users/interfaces/user.interface';
 import { ProductService } from '../product/product.service';
 import { CartItemDto } from './dto/cart-item.dto';
 import { UserService } from '../Users/users.service';
+import { Address } from '../adrress/entity/address.entity';
 
 @Injectable()
 export class CartService {
@@ -98,12 +99,18 @@ export class CartService {
           },
         },
       });
-      return cartItem.length === 0 ? null : cartItem;
+
+      if (!cartItem) {
+        throw new NotFoundException('Cart not found');
+      }
+  
+      return cartItem;
     } catch (error) {
       console.error('Error finding cart items:', error);
       throw new Error('Failed to fetch cart items');
     }
   }
+
   async removeItem(email: string, sizeId: number) {
     try {
       const isUser = await this.userService.findOne(email);

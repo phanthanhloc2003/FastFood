@@ -12,6 +12,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { ProductModule } from './modules/product/product.module';
 import { CartModule } from './modules/cart/cart.module';
 import { AddressModule } from './modules/adrress/address.module';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { AddressModule } from './modules/adrress/address.module';
     CategoriesModule,
     ProductModule,
     CartModule,
-    AddressModule
+    AddressModule,
+    OrderModule
   ],
   providers: [
     {

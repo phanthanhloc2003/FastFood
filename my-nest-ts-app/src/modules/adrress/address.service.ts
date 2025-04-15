@@ -39,7 +39,7 @@ export class AddressService {
       throw error;
     }
   }
-  async findAll(email: string) {
+  async findAll(email: string):Promise<Address[] | null> {
     try {
       const user = await this.userService.findOne(email);
       if (!user) {

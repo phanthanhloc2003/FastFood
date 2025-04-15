@@ -5,17 +5,15 @@ import {
   Body,
   Delete,
   Param,
-  UseGuards,
-  Put,
   Patch,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
-import { Cart } from './entity/cart.entity';
 import { IUserNoPassWord } from '../Users/interfaces/user.interface';
 import { User } from 'src/common/decorators/public-router.decorator';
 import { CartItemDto } from './dto/cart-item.dto';
 import { UpdateCartItemQuantityDto } from './dto/quantityItem.dto';
 import { ChangeSizeDto } from './dto/change-size.dto';
+
 
 @Controller('cart')
 export class CartController {

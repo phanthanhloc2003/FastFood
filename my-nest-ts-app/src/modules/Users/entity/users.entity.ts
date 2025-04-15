@@ -1,6 +1,10 @@
 
 import { Address } from 'src/modules/adrress/entity/address.entity';
 import { Cart } from 'src/modules/cart/entity/cart.entity';
+import { Notification } from 'src/modules/order/entity/notification.entity';
+import { OrderHistory } from 'src/modules/order/entity/order-history.entity';
+import { Order } from 'src/modules/order/entity/order.entity';
+import { ProductReview } from 'src/modules/product/entity/product-review.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -50,6 +54,18 @@ export class User {
 
   @OneToOne(() => Cart, (cart) => cart.user)
   cart: Cart;
+
+  @OneToMany(() => OrderHistory, (history) => history.user)
+  orderHistories: OrderHistory[];
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[];
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
+
+  @OneToMany(() => ProductReview, (review) => review.user)
+  reviews: ProductReview[];
 
   @CreateDateColumn()
   createdAt: Date;

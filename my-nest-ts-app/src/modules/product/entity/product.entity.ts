@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { ProductImage } from './product-image.entity';
 import { ProductSize } from './product-size.entity';
+import { ProductReview } from './product-review.entity';
 
 
 @Entity('products')
@@ -52,4 +53,6 @@ export class Product {
 
   @OneToMany(() => ProductSize, (size) => size.product, { cascade: true })
   sizes: ProductSize[];
+  @OneToMany(() => ProductReview, (review) => review.product)
+  reviews: ProductReview[];
 }

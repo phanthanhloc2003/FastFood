@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 import { Product } from './product.entity';
 import { CartItem } from 'src/modules/cart/entity/cart-item.entity';
+import { OrderItem } from 'src/modules/order/entity/order-item.entity';
 
 
 @Entity('product_sizes')
@@ -18,5 +19,8 @@ export class ProductSize {
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
+
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.product_size)
+  orderItems: OrderItem[];
 
 }

@@ -1,24 +1,24 @@
-// import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
-// import { Order } from './order.entity';
-// import { User } from './user.entity';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn } from 'typeorm';
+import { Order } from './order.entity';
+import { User } from 'src/modules/Users/entity/users.entity';
 
-// @Entity('notifications')
-// export class Notification {
-//   @PrimaryGeneratedColumn()
-//   id: number;
+@Entity('notifications')
+export class Notification {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-//   @ManyToOne(() => Order, order => order.notifications, { onDelete: 'CASCADE' })
-//   order: Order;
+  @ManyToOne(() => Order, (order) => order.notifications, { onDelete: 'CASCADE' })
+  order: Order;
+  
+  @ManyToOne(() => User, (user) => user.notifications, { nullable: true, onDelete: 'SET NULL' })
+  user: User;
 
-//   @ManyToOne(() => User, { onDelete: 'SET NULL' })
-//   user: User;
+  @Column({ type: 'text' })
+  message: string;
 
-//   @Column('text')
-//   message: string;
+  @Column({ type: 'varchar', length: 50, default: 'Unread' })
+  status: 'Unread' | 'Read';
 
-//   @Column({ type: 'varchar', length: 50, default: 'Unread', enum: ['Unread', 'Read'] })
-//   status: string;
-
-//   @CreateDateColumn()
-//   created_at: Date;
-// }
+  @CreateDateColumn()
+  created_at: Date;
+}
