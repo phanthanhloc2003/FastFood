@@ -16,9 +16,7 @@ import CategoryManagement from "../pages/Admin/CategoryManagement";
 import Layout from "../components/Layout/Layout";
 import ProductDetail from "../pages/ProductDetail";
 import UserOrders from "../pages/UserOrders";
-import OrderStatusLogsPage from "../pages/Admin/OrderStatusLogsPage";
 import NotificationsPage from "../pages/Admin/NotificationsPage";
-import OrderDetailPage from "../pages/Admin/OrderDetailPage";
 import OrdersPage from "../pages/Admin/OrdersPage";
 import Payment from "../pages/Payment";
 
@@ -60,8 +58,8 @@ const AppRoutes: React.FC = () => {
         <Route path="users" element={<UserManagement />} />
         <Route path="categories" element={<CategoryManagement />} />
         <Route path="orders" element={<OrdersPage />} />
-        <Route path="/admin/orders/status-logs/:orderId" element={<OrderDetailPage />} />
-        <Route path="orders/status-logs" element={<OrderStatusLogsPage />} />
+        {/* <Route path="/admin/orders/status-logs/:orderId" element={<OrderDetailPage />} /> */}
+        {/* <Route path="orders/status-logs" element={<OrderStatusLogsPage />} /> */}
         <Route path="notificationsPage" element={<NotificationsPage />} />
       </Route>
 

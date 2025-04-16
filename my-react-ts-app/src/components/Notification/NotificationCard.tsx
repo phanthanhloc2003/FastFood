@@ -1,15 +1,16 @@
 import { motion } from "framer-motion";
-import { BellAlertIcon, BellIcon, ShoppingBagIcon } from "@heroicons/react/24/outline";
+import { BellAlertIcon, BellIcon, ShoppingBagIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { Notification } from "../../types/notification";
 
 interface NotificationCardProps {
   notification: Notification;
   onMarkAsRead: (id: number) => void;
+  onDelete: (id: number) => void;
   isUpdating?: boolean;
 }
 
-const NotificationCard = ({ notification, onMarkAsRead, isUpdating }: NotificationCardProps) => {
+const NotificationCard = ({ notification, onMarkAsRead, onDelete, isUpdating }: NotificationCardProps) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -47,9 +48,19 @@ const NotificationCard = ({ notification, onMarkAsRead, isUpdating }: Notificati
                 Đơn hàng #{notification.order_id}
               </span>
             </div>
-            <span className="text-xs text-gray-500">
-              {format(new Date(notification.created_at), "HH:mm dd/MM/yyyy")}
-            </span>
+            <div className="flex items-center gap-2">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => onDelete(notification.id)}
+                className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </motion.button>
+              <span className="text-xs text-gray-500">
+                {format(new Date(notification.created_at), "HH:mm dd/MM/yyyy")}
+              </span>
+            </div>
           </div>
 
           <div className="mt-2 p-3 bg-gray-50 rounded-lg">

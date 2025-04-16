@@ -1,3 +1,5 @@
+import { Address } from "../types";
+
 export interface OrderItem {
     id: number;
     name: string;
@@ -9,6 +11,7 @@ export interface OrderItem {
 
 export interface Order {
     id: number;
+    order_code:string;
     user_id: number;
     table_number?: number;
     address_id?: number;

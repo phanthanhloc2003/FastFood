@@ -1,4 +1,5 @@
 import { DeliveryType } from "../services/order";
+import { Address } from "./address";
 
 export enum PaymentMethod {
   CASH = "Cash",
@@ -19,3 +20,16 @@ export interface payment {
   addressId?: number | null;
   paymentMethod?: PaymentMethod;
 }
+
+export interface OrderResponse {
+  id: number;
+  order_code: string;
+  address: Address;
+  delivery_type: 'Delivery' | 'Pickup'; 
+  status: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed'; 
+  total_price: string; 
+  created_at: string;
+  updated_at: string;
+  table: any; 
+}
+

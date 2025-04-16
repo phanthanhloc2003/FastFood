@@ -8,6 +8,7 @@ const NotificationsPage: React.FC = () => {
   const [notificationsList, setNotificationsList] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<'all' | 'Unread' | 'Read'>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const filteredNotifications = notificationsList.filter(notification => {
     if (filter === 'all') return true;
@@ -32,6 +33,7 @@ const NotificationsPage: React.FC = () => {
 
   const handleMarkAsRead = async (id: number) => {
     try {
+      setIsUpdating(true);
       await notificationApi.markAsRead(id);
       setNotificationsList(notificationsList.map(notification => {
         if (notification.id === id) {
@@ -44,6 +46,20 @@ const NotificationsPage: React.FC = () => {
       }));
     } catch (error) {
       console.error('Error marking notification as read:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      setIsUpdating(true);
+      await notificationApi.deleteNotification(id);
+      setNotificationsList(notificationsList.filter(notification => notification.id !== id));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -167,6 +183,8 @@ const NotificationsPage: React.FC = () => {
                 <NotificationCard
                   notification={notification}
                   onMarkAsRead={handleMarkAsRead}
+                  onDelete={handleDelete}
+                  isUpdating={isUpdating}
                 />
               </motion.div>
             ))}

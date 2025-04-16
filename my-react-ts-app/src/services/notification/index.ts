@@ -10,4 +10,9 @@ export const notificationApi = {
     const response = await api.put(`/notifications/${id}/read`);
     return response.data;
   },
+
+  deleteNotification: async (id: number) => {
+    const response = await api.delete(`/notifications/${id}`);
+    return response.data;
+  },
 }; 
