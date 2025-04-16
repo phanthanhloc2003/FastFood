@@ -5,7 +5,7 @@ import { IUserNoPassWord } from '../Users/interfaces/user.interface';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CartService } from '../cart/cart.service';
 import { Table } from './entity/table.entity';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { Order } from './entity/order.entity';
 import { UserService } from '../Users/users.service';
 import { OrderItem } from './entity/order-item.entity';
@@ -14,6 +14,7 @@ import { emailTransporter } from 'src/config/email.config';
 import { NotificationService } from '../notification/notification.service';
 import { OrderStatusLog } from './entity/order-status-log.entity';
 import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { OrderHistory } from './entity/order-history.entity';
 @Injectable()
 export class OrderService {
   constructor(
@@ -31,6 +32,8 @@ export class OrderService {
     private paymentRepository: Repository<Payment>,
     @Inject('OEDERSTATUSLOG_REPOSITORY')
     private orderStatusLogRepository: Repository<OrderStatusLog>,
+    @Inject('ORDERHISTORY_REPOSITORY')
+    private orderHistoryRepository: Repository<OrderHistory>,
   ) {}
 
   async validateOrderPreparation(
@@ -219,5 +222,62 @@ export class OrderService {
         '0',
       )}${now.getDate().toString().padStart(2, '0')}${Date.now().toString().slice(-4)}`;
     return code;
+  }
+
+  async getUserOrders(userId: number): Promise<Order[]> {
+    const orders = await this.orderRepository.find({
+      where: { user: { id: userId } },
+      select: [
+        'id',
+        'order_code',
+        'delivery_type',
+        'status',
+        'total_price',
+        'created_at',
+        'updated_at',
+      ],
+      relations: ['address', 'table'], 
+      order: { created_at: 'DESC' }, 
+    });
+
+    return orders;
+  }
+
+  async viewOrder(userId: number, orderId: number): Promise<Order> {
+    const recentView = await this.orderHistoryRepository.findOne({
+      where: {
+        user: { id: userId },
+        order: { id: orderId },
+        viewed_at: MoreThan(new Date(Date.now() - 60 * 60 * 1000)),
+      },
+    });
+
+    if (!recentView) {
+      await this.orderHistoryRepository.save(
+        this.orderHistoryRepository.create({
+          user: { id: userId },
+          order: { id: orderId },
+        }),
+      );
+    }
+    
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId, user: { id: userId } },
+      relations: [
+        'items',
+        'items.product_size',
+        'items.product_size.product',
+        'address',
+        'table',
+        'statusLogs',
+        'payments',
+      ],
+    });
+
+    if (!order) {
+      throw new BadRequestException('Order not found or you do not have access');
+    }
+
+    return order;
   }
 }

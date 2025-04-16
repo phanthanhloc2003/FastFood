@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable } from '@nestjs/common';
 import { UserService } from '../Users/users.service';
 import { Repository } from 'typeorm';
 import { Notification } from './entity/notification.entity';
@@ -49,16 +49,46 @@ export class NotificationService {
       });
     }
 
-  //   async markNotificationAsRead(notificationId: number, userId: number): Promise<void> {
-  //     const notification = await this.notificationRepository.findOne({
-  //       where: { id: notificationId, user: { id: userId } },
-  //     });
+    async markNotificationAsRead(notificationId: number, userId: number): Promise<string> {
+      try {
+        const notification = await this.notificationRepository.findOne({
+          where: { id: notificationId, user: { id: userId } },
+        });
+        if (!notification) {
+          throw new BadRequestException('Notification not found or you do not have access');
+        }
+        if (notification.status === 'Read') {
+          throw new ConflictException('Notification has already been marked as read');
+        }
+        notification.status = 'Read';
+        await this.notificationRepository.save(notification);
+    
+        return 'Notification marked as read successfully';
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+        throw error;
+      }
+    }
 
-  //     if (!notification) {
-  //       throw new BadRequestException('Notification not found or you do not have access');
-  //     }
-
-  //     notification.status = 'Read';
-  //     await this.notificationRepository.save(notification);
-  //   }
+    async deleteNotificationIfRead(notificationId: number, userId: number): Promise<string> {
+      try {
+        const notification = await this.notificationRepository.findOne({
+          where: { id: notificationId, user: { id: userId } },
+        });
+        if (!notification) {
+          throw new BadRequestException('Notification not found or you do not have access');
+        }
+        if (notification.status !== 'Read') {
+          throw new BadRequestException('You can only delete notifications that have been read');
+        }
+        await this.notificationRepository.remove(notification);
+        return 'Notification deleted successfully';
+      } catch (error) {
+        console.error('Error deleting notification:', error);
+        throw error;
+      }
+    }
+    
+    
+    
 }
