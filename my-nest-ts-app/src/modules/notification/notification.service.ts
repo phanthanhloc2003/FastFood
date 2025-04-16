@@ -41,13 +41,13 @@ export class NotificationService {
   }
   
 
-  //   async getUserNotifications(userId: number): Promise<Notification[]> {
-  //     return this.notificationRepository.find({
-  //       where: { user: { id: userId } },
-  //       relations: ['order'],
-  //       order: { created_at: 'DESC' },
-  //     });
-  //   }
+    async getUserNotifications(userId: number): Promise<Notification[]> {
+      return this.notificationRepository.find({
+        where: { user: { id: userId } },
+        relations: ['order'],
+        order: { created_at: 'DESC' },
+      });
+    }
 
   //   async markNotificationAsRead(notificationId: number, userId: number): Promise<void> {
   //     const notification = await this.notificationRepository.findOne({
