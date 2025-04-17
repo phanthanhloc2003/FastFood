@@ -1,11 +1,8 @@
-import { promises } from "dns";
 import { CheckoutResponse } from "../../types/cart";
 import { OrderResponse, payment } from "../../types/orderStatus";
 import api from "../api";
 export type DeliveryType = "Dine-in" | "Take-away" | "Delivery";
 export const orderApi = {
-
-
   checkout: async (data: {
     deliveryType: DeliveryType;
     tableId?: number | null;

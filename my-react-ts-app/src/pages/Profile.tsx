@@ -13,6 +13,8 @@ import { useNavigate } from 'react-router-dom';
 import usersApi from '../services/user';
 import AddressList from '../components/Profile/AddressList';
 import { addressApi } from '../services/address';
+import { orderApi } from '../services/order';
+import { OrderResponse } from '../types/orderStatus';
 
 interface User {
   id: number;
@@ -34,7 +36,7 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAvatarUpload, setShowAvatarUpload] = useState(false);
@@ -47,9 +49,9 @@ const Profile: React.FC = () => {
       try {
         setIsLoading(true);
         // const userData = await usersApi.getUserProfile();
-        // const ordersData = await usersApi.getUserOrders();
+        const ordersData = await orderApi.getHistory();
         const addressesData = await addressApi.getAll();
-        // setOrders(ordersData);
+        setOrders(ordersData);
         setAddresses(addressesData);
       } catch (err: any) {
         setError(err.message || 'Có lỗi xảy ra khi tải dữ liệu');
@@ -184,7 +186,7 @@ const Profile: React.FC = () => {
                   transition={{ duration: 0.3 }}
                 >
                   {activeTab === 'profile' && <ProfileInfo user={user} />}
-                  {activeTab === 'orders' && <OrderList orders={orders} />}
+                  {activeTab === 'orders' && <OrderList />}
                   {activeTab === 'addresses' && (
                     <AddressList
                       addresses={addresses}
