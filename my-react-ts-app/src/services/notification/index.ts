@@ -7,7 +7,7 @@ export const notificationApi = {
   },
 
   markAsRead: async (id: number) => {
-    const response = await api.put(`/notifications/${id}/read`);
+    const response = await api.post(`/notifications/${id}/read`);
     return response.data;
   },
 
