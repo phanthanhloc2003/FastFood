@@ -59,18 +59,6 @@ export interface CartItem {
   size: string;
   price:number;
 }
-
-
-
-export interface CartItemResponce {
-  id?:string;
-  productSize: IResProductSize;
-  quantity: number;
-  size: string;
-  price:number;
-}
-
-
 export interface Cart {
   items: CartItem[];
   totalAmount: number;

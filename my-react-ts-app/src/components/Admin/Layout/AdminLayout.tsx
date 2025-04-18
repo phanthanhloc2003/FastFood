@@ -29,8 +29,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const location = useLocation();
   const user = useSelector((state: RootState) => state.auth.user);
-
-  // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
@@ -121,7 +119,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     },
     {
       title: 'Quản lý đơn hàng',
-      path: '/admin/orders/status-logs',
+      path: '/admin/order',
       icon: ChartBarIcon,
     },
   ];

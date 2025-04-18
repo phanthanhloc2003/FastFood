@@ -17,8 +17,10 @@ import Layout from "../components/Layout/Layout";
 import ProductDetail from "../pages/ProductDetail";
 import UserOrders from "../pages/UserOrders";
 import NotificationsPage from "../pages/Admin/NotificationsPage";
-import OrdersPage from "../pages/Admin/OrdersPage";
+
 import Payment from "../pages/Payment";
+import OrderManagement from "../pages/Admin/OrderManagement";
+import OrderDetailPage from "../pages/Admin/OrderDetailPage";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -56,9 +58,9 @@ const AppRoutes: React.FC = () => {
         <Route index element={<Navigate to="products" replace />} />
         <Route path="products" element={<ProductManagement />} />
         <Route path="users" element={<UserManagement />} />
+        <Route path="order" element={<OrderManagement />} />
         <Route path="categories" element={<CategoryManagement />} />
-        <Route path="orders" element={<OrdersPage />} />
-        {/* <Route path="/admin/orders/status-logs/:orderId" element={<OrderDetailPage />} /> */}
+        <Route path="/admin/orders/:id" element={<OrderDetailPage />} />
         {/* <Route path="orders/status-logs" element={<OrderStatusLogsPage />} /> */}
         <Route path="notificationsPage" element={<NotificationsPage />} />
       </Route>
