@@ -12,7 +12,7 @@ import { Payment } from './entity/payment.entity';
 import { emailTransporter } from 'src/config/email.config';
 import { NotificationService } from '../notification/notification.service';
 import { OrderStatusLog } from './entity/order-status-log.entity';
-import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { OrderHistory } from './entity/order-history.entity';
 @Injectable()
 export class OrderService {
@@ -329,5 +329,42 @@ export class OrderService {
     }
 
     return order;
+  }
+  async updateOrderStatus(orderId: number, status: 'Pending' | 'Completed' | 'Cancelled', message?: string): Promise<Order> {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: ['user'],
+    });
+    if (!order) {
+      throw new BadRequestException('Order not found');
+    }
+    order.status = status;
+    await this.orderRepository.save(order);
+    await this.orderStatusLogRepository.save(
+      this.orderStatusLogRepository.create({
+        order,
+        status,
+        message:message || 'Completed',
+      }),
+    );
+    return order;
+  }
+  async getOrderStatusLogs(orderId: number): Promise<OrderStatusLog[]> {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: ['user'],
+    });
+
+    if (!order) {
+      throw new BadRequestException('Order not found');
+    }
+
+    const statusLogs = await this.orderStatusLogRepository.find({
+      where: { order: { id: orderId } },
+      select: ['id', 'status', 'message', 'created_at'],
+      order: { created_at: 'ASC' },
+    });
+
+    return statusLogs;
   }
 }

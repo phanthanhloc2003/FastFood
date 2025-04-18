@@ -17,5 +17,13 @@ export class OrderController {
     return this.orderService.getOrderDetails(orderId);
   }
 
+  @Patch(':id/status')
+  async updateOrderStatus(
+    @Param('id', ParseIntPipe) orderId: number,
+    @Body() body: { status: 'Pending' | 'Completed' | 'Cancelled'; message?: string },
+  ): Promise<Order> {
+    return this.orderService.updateOrderStatus(orderId, body.status, body?.message);
+  }
+
 
 }

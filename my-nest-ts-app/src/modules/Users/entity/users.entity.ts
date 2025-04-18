@@ -41,7 +41,7 @@ export class User {
     default: 'user',
     nullable: true,
   })
-  role?: 'user' | 'admin';
+  role: 'user' | 'admin';
 
   @OneToMany(() => Address, (userAddress) => userAddress.user)
   addresses: Address[];
