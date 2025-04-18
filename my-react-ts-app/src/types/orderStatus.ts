@@ -9,6 +9,14 @@ export enum PaymentMethod {
   CARD = "Card",
   ONLINE = "Online",
 }
+
+export interface StatusLog {
+  id: number;
+  status: string;
+  message: string;
+  created_at: string;
+}
+
 export interface OrderStatusLog {
   id: number;
   order_id: number;

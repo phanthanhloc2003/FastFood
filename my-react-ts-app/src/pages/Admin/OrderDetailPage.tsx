@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { orderApi } from "../../services/order";
-import { IOrderResponseDetail, OrderResponse } from "../../types/orderStatus";
-import { CartItemResponse } from "../../types/cart";
+import { IOrderResponseDetail } from "../../types/orderStatus";
 import { format } from "date-fns";
 import {
   CheckCircleIcon,
@@ -28,6 +27,8 @@ const OrderDetailPage: React.FC = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   useEffect(() => {
     const fetchOrderDetail = async () => {
@@ -50,12 +51,11 @@ const OrderDetailPage: React.FC = () => {
     };
     fetchOrderDetail();
   }, [id]);
-
   const handleConfirmOrder = async () => {
     if (!order) return;
     try {
       setIsUpdating(true);
-      await orderApi.confirmOrder(order.id);
+      await orderApi.updateOrderStatus(order.id, "Completed");
       setOrder({ ...order, status: "Confirmed" });
       setNotificationMessage("Xác nhận đơn hàng thành công!");
       setShowNotification(true);
@@ -65,20 +65,23 @@ const OrderDetailPage: React.FC = () => {
       setNotificationMessage("Có lỗi xảy ra khi xác nhận đơn hàng!");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 3000);
+      navigate('/admin/order')
     } finally {
       setIsUpdating(false);
     }
   };
-
   const handleCancelOrder = async () => {
     if (!order) return;
     try {
       setIsUpdating(true);
-    //   await orderApi.cancelOrder(order.id);
+      await orderApi.updateOrderStatus(order.id, "Cancelled",notificationMessage);
       setOrder({ ...order, status: "Cancelled" });
       setNotificationMessage("Hủy đơn hàng thành công!");
       setShowNotification(true);
+      setShowCancelModal(false);
+      setCancelReason("");
       setTimeout(() => setShowNotification(false), 3000);
+      navigate('/admin/order')
     } catch (error) {
       console.error("Lỗi khi hủy đơn hàng:", error);
       setNotificationMessage("Có lỗi xảy ra khi hủy đơn hàng!");
@@ -174,23 +177,34 @@ const OrderDetailPage: React.FC = () => {
         className="max-w-7xl mx-auto"
       >
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/admin/orders")}
+              className="p-2 rounded-lg bg-white shadow-sm hover:bg-orange-50 transition-colors"
+            >
+              <ArrowLeftIcon className="w-6 h-6 text-gray-600" />
+            </motion.button>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
+                Chi tiết đơn hàng #{order.order_code}
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {format(new Date(order.created_at), "HH:mm dd/MM/yyyy")}
+              </p>
+            </div>
+          </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/admin/orders")}
-            className="p-2 rounded-lg bg-white shadow-sm hover:bg-orange-50 transition-colors"
+            onClick={() => navigate(`/admin/orders/${order.id}/status-logs`)}
+            className="flex items-center gap-2 px-4 py-2 bg-white text-orange-600 rounded-lg shadow-sm hover:bg-orange-50 transition-colors"
           >
-            <ArrowLeftIcon className="w-6 h-6 text-gray-600" />
+            <ClockIcon className="w-5 h-5" />
+            <span>Xem lịch sử trạng thái</span>
           </motion.button>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
-              Chi tiết đơn hàng #{order.order_code}
-            </h1>
-            <p className="text-gray-600 mt-1">
-              {format(new Date(order.created_at), "HH:mm dd/MM/yyyy")}
-            </p>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -370,20 +384,20 @@ const OrderDetailPage: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead>
-                <tr className="bg-orange-50">
-                  <th className="px-6 py-4 text-left text-xs font-medium text-orange-600 uppercase tracking-wider rounded-tl-lg">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Sản phẩm
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-orange-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Kích thước
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-orange-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Số lượng
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-orange-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Đơn giá
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-orange-600 uppercase tracking-wider rounded-tr-lg">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Thành tiền
                   </th>
                 </tr>
@@ -395,69 +409,51 @@ const OrderDetailPage: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 * index }}
-                    className="hover:bg-orange-50/50 transition-colors duration-200 group"
+                    className="hover:bg-orange-50/50 transition-colors duration-200"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <motion.div
-                          className="relative h-20 w-20 rounded-lg overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-md transition-shadow"
+                          className="relative h-16 w-16 rounded-lg overflow-hidden bg-gray-100"
                           whileHover={{ scale: 1.05 }}
                         >
-                          <img
-                            src={item.product_size.product.images[0]?.url || "/placeholder-food.jpg"}
-                            alt={item.product_name}
-                            className="h-full w-full object-cover"
-                          />
+
+                          {item.product_size.product.images.map(item => (
+                             <img
+                             src={item.url || "/placeholder-food.jpg"}
+                             alt={item.url}
+                             className="h-full w-full object-cover"/>
+                          )
+
+                      
+                          )}
+                         
                           <motion.div
-                            className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"
+                            className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"
                             initial={{ opacity: 0 }}
                             whileHover={{ opacity: 1 }}
                           />
-                          {item.product_size.product.images.length > 1 && (
-                            <motion.div
-                              className="absolute bottom-1 right-1 bg-white/90 rounded-full px-2 py-1 text-xs text-gray-700 shadow-sm"
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.2 }}
-                            >
-                              +{item.product_size.product.images.length - 1}
-                            </motion.div>
-                          )}
                         </motion.div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 group-hover:text-orange-600 transition-colors">
+                          <div className="text-sm font-medium text-gray-900">
                             {item.product_name}
                           </div>
                           <div className="text-xs text-gray-500 mt-1 line-clamp-2">
                             {item.product_size.product.description}
                           </div>
-                          <div className="mt-1 flex flex-wrap gap-1">
-                            {item.product_size.product.ingredients.map((ingredient, idx) => (
-                              <span
-                                key={idx}
-                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800"
-                              >
-                                {ingredient}
-                              </span>
-                            ))}
-                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 font-medium">
-                        {item.size}
+                      <div className="text-sm text-gray-900">{item.size}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {item.quantity}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 flex items-center justify-center bg-orange-100 text-orange-600 rounded-full font-medium">
-                          {item.quantity}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 font-medium">
+                      <div className="text-sm text-gray-900">
                         {new Intl.NumberFormat("vi-VN", {
                           style: "currency",
                           currency: "VND",
@@ -465,7 +461,7 @@ const OrderDetailPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-orange-600">
+                      <div className="text-sm text-gray-900">
                         {new Intl.NumberFormat("vi-VN", {
                           style: "currency",
                           currency: "VND",
@@ -479,6 +475,84 @@ const OrderDetailPage: React.FC = () => {
           </div>
         </motion.div>
 
+        {/* Modal hủy đơn hàng */}
+        <AnimatePresence>
+          {showCancelModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl relative overflow-hidden"
+              >
+                {/* Background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-orange-100 opacity-50" />
+                
+                {/* Content */}
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-red-100 rounded-full">
+                      <XCircleIcon className="w-6 h-6 text-red-500" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-800">
+                      Xác nhận hủy đơn hàng
+                    </h3>
+                  </div>
+                  
+                  <p className="text-gray-600 mb-4">
+                    Vui lòng nhập lý do hủy đơn hàng <span className="font-medium text-orange-600">#{order?.order_code}</span>
+                  </p>
+                  
+                  <textarea
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="Nhập lý do hủy đơn hàng..."
+                    className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none transition-all duration-200 hover:border-orange-300"
+                  />
+                  
+                  <div className="flex justify-end gap-4 mt-6">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        setShowCancelModal(false);
+                        setCancelReason("");
+                      }}
+                      className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      Hủy
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleCancelOrder}
+                      disabled={!cancelReason.trim() || isUpdating}
+                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {isUpdating ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Đang xử lý...</span>
+                        </>
+                      ) : (
+                        <>
+                          <XCircleIcon className="w-5 h-5" />
+                          <span>Xác nhận hủy</span>
+                        </>
+                      )}
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Nút xác nhận/hủy đơn hàng */}
         {order.status === "Pending" && (
           <motion.div
@@ -490,33 +564,30 @@ const OrderDetailPage: React.FC = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handleCancelOrder}
+              onClick={() => setShowCancelModal(true)}
               disabled={isUpdating}
-              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {isUpdating ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Đang xử lý...</span>
-                </div>
-              ) : (
-                "Hủy đơn hàng"
-              )}
+              <XCircleIcon className="w-5 h-5" />
+              <span>Hủy đơn hàng</span>
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleConfirmOrder}
               disabled={isUpdating}
-              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isUpdating ? (
-                <div className="flex items-center gap-2">
+                <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>Đang xử lý...</span>
-                </div>
+                </>
               ) : (
-                "Xác nhận đơn hàng"
+                <>
+                  <CheckCircleIcon className="w-5 h-5" />
+                  <span>Xác nhận đơn hàng</span>
+                </>
               )}
             </motion.button>
           </motion.div>

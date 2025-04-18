@@ -11,8 +11,10 @@ import {
   CurrencyDollarIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
 const OrderManagement: React.FC = () => {
+  const navigate = useNavigate()
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showNotification, setShowNotification] = useState(false);
@@ -25,8 +27,7 @@ const OrderManagement: React.FC = () => {
     const fetchOrders = async () => {
       try {
         setIsLoading(true);
-        // const data = await orderApi.getHistory();
-        const data = await orderApi.getAllOrders("Pending");
+        const data = await orderApi.getAllOrders(filter);
         if (data) {
           setOrders(data);
         }
@@ -40,7 +41,12 @@ const OrderManagement: React.FC = () => {
       }
     };
     fetchOrders();
-  }, []);
+  }, [filter]);
+
+
+  const goToOrderDetail= (id:number) => {
+    navigate(`/admin/orders/${id}`)
+  }
 
   const handleConfirmOrder = async (orderId: number) => {
     try {
@@ -69,7 +75,6 @@ const OrderManagement: React.FC = () => {
 
   const handleCancelOrder = async (orderId: number) => {
     try {
-      // TODO: Call API to cancel order
       setOrders(
         orders.map((order) => {
           if (order.id === orderId) {
@@ -296,6 +301,7 @@ const OrderManagement: React.FC = () => {
                 <AnimatePresence>
                   {filteredOrders.map((order, index) => (
                     <motion.tr
+                    onClick={() => goToOrderDetail(order.id)}
                       key={order.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}

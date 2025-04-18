@@ -1,5 +1,11 @@
 import { CheckoutResponse } from "../../types/cart";
-import { IOrderResponseDetail, OrderResponse, payment } from "../../types/orderStatus";
+import {
+  IOrderResponseDetail,
+  OrderResponse,
+  OrderStatusLog,
+  payment,
+  StatusLog,
+} from "../../types/orderStatus";
 import api from "../api";
 export type DeliveryType = "Dine-in" | "Take-away" | "Delivery";
 export const orderApi = {
@@ -15,25 +21,41 @@ export const orderApi = {
     return response.data;
   },
 
-  getHistory: async ():Promise<OrderResponse[]> => {
+  getHistory: async (): Promise<OrderResponse[]> => {
     const response = await api.get("/order/history");
     return response.data;
   },
 
-  getAllOrders: async (status:string):Promise<OrderResponse[]> => {
+  getAllOrders: async (status: string): Promise<OrderResponse[]> => {
     const response = await api.get("admin/orders", {
       params: {
-        status:status
-      }
+        status: status,
+      },
     });
     return response.data;
   },
-  getOrderDetails: async (id:string):Promise<IOrderResponseDetail> => {
+  getOrderDetails: async (id: string): Promise<IOrderResponseDetail> => {
     const response = await api.get(`admin/orders/${id}`);
     return response.data;
   },
-  confirmOrder: async (id: string): Promise<IOrderResponseDetail> => {
-    const response = await api.put(`admin/orders/${id}/confirm`);
+  updateOrderStatus: async (
+    id: string,
+    status: "Pending" | "Completed" | "Cancelled",
+    message?: string,
+  ): Promise<IOrderResponseDetail> => {
+    console.log(id);
+    const response = await api.patch(`admin/orders/${id}/status`, {
+      status,
+      message,
+    });
     return response.data;
   },
+
+  getOrderStatusLogs: async (
+    id: string,
+  ): Promise<StatusLog[]> => {
+    const response = await api.get(`/order/${id}/status-logs`);
+    return response.data;
+  },
+
 };
