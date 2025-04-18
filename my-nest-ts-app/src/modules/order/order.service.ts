@@ -1,4 +1,3 @@
-
 import { Address } from '../adrress/entity/address.entity';
 import { AddressService } from '../adrress/address.service';
 import { IUserNoPassWord } from '../Users/interfaces/user.interface';
@@ -276,6 +275,57 @@ export class OrderService {
 
     if (!order) {
       throw new BadRequestException('Order not found or you do not have access');
+    }
+
+    return order;
+  }
+
+  async getAllOrders(status?: string): Promise<Order[]> {
+       try {
+        const query:any = {
+          relations: ['user', 'address', 'table'],
+          select: [
+            'id',
+            'order_code',
+            'delivery_type',
+            'status',
+            'total_price',
+            'created_at',
+            'updated_at',
+            'user',
+            'address',
+            'table',
+          ],
+          order: { created_at: 'DESC' },
+        };
+        if (status) {
+          query['where'] = { status };
+        }
+        return this.orderRepository.find(query);
+       } catch (error) {
+        console.error('err',error)
+        throw error;
+       }
+  }
+
+  async getOrderDetails(orderId: number): Promise<Order> {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: [
+        'user',
+        'items',
+        'items.product_size',
+        'items.product_size.product',
+        'items.product_size.product.images',
+        'address',
+        'table',
+        'statusLogs',
+        'payments',
+      ],
+    });
+
+    if (!order) {
+      throw new BadRequestException('Order not found');
     }
 
     return order;

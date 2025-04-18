@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { IUserNoPassWord } from '../Users/interfaces/user.interface';
 import { User } from 'src/common/decorators/public-router.decorator';
 import { Address } from '../adrress/entity/address.entity';
@@ -29,4 +29,5 @@ export class OrderController {
   async viewOrder(@User() user:IUserNoPassWord, @Param('id', ParseIntPipe) orderId: number): Promise<Order> {
     return this.orderService.viewOrder(user.id, orderId);
   }
+  
 }
