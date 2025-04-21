@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 
 const OrderManagement: React.FC = () => {
   const navigate = useNavigate()
-  const [orders, setOrders] = useState<OrderResponse[]>([]);
+  const [orders, setOrders] = useState<OrderResponse[]| []>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
@@ -211,9 +211,16 @@ const OrderManagement: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <MapPinIcon className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm text-gray-600">
-                            {order.address.address_line}
-                          </span>
+                          <div className="text-sm text-gray-900">
+                            {order.address ? (
+                              <>
+                                {order.address.address_line}, {order.address.ward},{" "}
+                                {order.address.district}, {order.address.province}
+                              </>
+                            ) : (
+                              <span className="text-gray-500">Không có địa chỉ</span>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <CurrencyDollarIcon className="h-4 w-4 text-gray-500" />
@@ -316,7 +323,16 @@ const OrderManagement: React.FC = () => {
                         {format(new Date(order.created_at), "HH:mm dd/MM/yyyy")}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {order.address.address_line}
+                        <div className="text-sm text-gray-900">
+                          {order.address ? (
+                            <>
+                              {order.address.address_line}, {order.address.ward},{" "}
+                              {order.address.district}, {order.address.province}
+                            </>
+                          ) : (
+                            <span className="text-gray-500">Không có địa chỉ</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {new Intl.NumberFormat("vi-VN", {
