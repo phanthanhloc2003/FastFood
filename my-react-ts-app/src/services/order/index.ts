@@ -2,10 +2,10 @@ import { CheckoutResponse } from "../../types/cart";
 import {
   IOrderResponseDetail,
   OrderResponse,
-  OrderStatusLog,
   payment,
   StatusLog,
 } from "../../types/orderStatus";
+import { Product } from "../../types/product";
 import api from "../api";
 export type DeliveryType = "Dine-in" | "Take-away" | "Delivery";
 export const orderApi = {
@@ -55,6 +55,12 @@ export const orderApi = {
     id: string,
   ): Promise<StatusLog[]> => {
     const response = await api.get(`/order/${id}/status-logs`);
+    return response.data;
+  },
+
+
+  findPurchasedProducts: async (): Promise<Product[] | []> => {
+    const response = await api.get("/order/product/completed");
     return response.data;
   },
 

@@ -22,6 +22,8 @@ import Payment from "../pages/Payment";
 import OrderManagement from "../pages/Admin/OrderManagement";
 import OrderDetailPage from "../pages/Admin/OrderDetailPage";
 import OrderStatusLogs from "../pages/Admin/OrderStatusLogs";
+import Rating from "../pages/Rating";
+import OrderHistory from "../pages/OrderHistory";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -43,6 +45,8 @@ const AppRoutes: React.FC = () => {
         <Route path="/address" element={<Address />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/rating/:id" element={<Rating />} />
+        <Route path="/purchased" element={<OrderHistory />} />
       </Route>
 
       <Route path="/login" element={<Login />} />

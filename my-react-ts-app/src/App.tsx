@@ -8,10 +8,8 @@ import usersApi from "./services/user";
 import { cartApi } from "./services/cart";
 import { addToCart, clearCart } from "./store/slices/cartSlice";
 import { RootState } from "./store/store";
-import OrderStatusLogs from "./pages/Admin/OrderStatusLogs";
 
 const App: React.FC = () => {
-  const cartItems = useSelector((state: RootState) => state.cart.items);
    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const dispatch = useDispatch();
   useEffect(() => {

@@ -15,6 +15,8 @@ import AddressList from '../components/Profile/AddressList';
 import { addressApi } from '../services/address';
 import { orderApi } from '../services/order';
 import { OrderResponse } from '../types/orderStatus';
+import OrderHistory from "./OrderHistory";
+import { UserIcon, ShoppingBagIcon, MapPinIcon, StarIcon } from '@heroicons/react/24/outline';
 
 interface User {
   id: number;
@@ -43,6 +45,13 @@ const Profile: React.FC = () => {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [showForm, setShowForm] = useState(false);
+
+  const tabs = [
+    { id: "profile", label: "Thông tin cá nhân", icon: UserIcon },
+    { id: "orders", label: "Đơn hàng", icon: ShoppingBagIcon },
+    { id: "addresses", label: "Địa chỉ", icon: MapPinIcon },
+    { id: "purchased", label: "Sản phẩm đã mua", icon: StarIcon },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -195,6 +204,7 @@ const Profile: React.FC = () => {
                       onSetDefault={handleSetDefault}
                     />
                   )}
+                  {activeTab === 'purchased' && <OrderHistory />}
                   {activeTab === 'settings' && <ProfileSettings />}
                 </motion.div>
               )}

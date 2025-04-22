@@ -29,6 +29,8 @@ const OrderDetailPage: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [showStatusLogs, setShowStatusLogs] = useState(false);
+  const [statusLogs, setStatusLogs] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchOrderDetail = async () => {
@@ -38,6 +40,22 @@ const OrderDetailPage: React.FC = () => {
           const data = await orderApi.getOrderDetails(id);
           if (data) {
             setOrder(data);
+            // Giả lập dữ liệu lịch sử trạng thái
+            setStatusLogs([
+              {
+                id: 1,
+                status: "Pending",
+                note: "Đơn hàng được tạo",
+                created_at: data.created_at,
+              },
+              {
+                id: 2,
+                status: data.status,
+                note: data.status === "Completed" ? "Đơn hàng đã được xác nhận" : 
+                      data.status === "Cancelled" ? "Đơn hàng đã bị hủy" : "Đang chờ xử lý",
+                created_at: data.updated_at || data.created_at,
+              }
+            ]);
           }
         }
       } catch (error) {
@@ -90,6 +108,76 @@ const OrderDetailPage: React.FC = () => {
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const renderStatusLogs = () => {
+    if (!statusLogs || statusLogs.length === 0) {
+      return (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-lg p-6 md:p-8 text-center"
+        >
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-orange-100 flex items-center justify-center">
+              <ClockIcon className="w-10 h-10 md:w-12 md:h-12 text-orange-400" />
+            </div>
+            <h3 className="text-lg md:text-xl font-semibold text-gray-700">
+              Chưa có lịch sử trạng thái
+            </h3>
+            <p className="text-sm md:text-base text-gray-500 max-w-xs">
+              Đơn hàng này chưa có bất kỳ thay đổi trạng thái nào
+            </p>
+          </div>
+        </motion.div>
+      );
+    }
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-lg p-4 md:p-6 backdrop-blur-sm bg-white/80"
+      >
+        <div className="space-y-4 md:space-y-6">
+          {statusLogs.map((log, index) => (
+            <motion.div
+              key={log.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="flex items-start gap-3 md:gap-4"
+            >
+              <div className="flex flex-col items-center">
+                <div className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${
+                  log.status === "Completed" ? "bg-green-500" :
+                  log.status === "Cancelled" ? "bg-red-500" :
+                  "bg-orange-500"
+                }`} />
+                {index < statusLogs.length - 1 && (
+                  <div className="w-0.5 h-12 md:h-16 bg-gray-200" />
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                  <span className={`px-2.5 py-1 rounded-full text-xs md:text-sm font-medium ${
+                    log.status === "Completed" ? "bg-green-100 text-green-800" :
+                    log.status === "Cancelled" ? "bg-red-100 text-red-800" :
+                    "bg-orange-100 text-orange-800"
+                  }`}>
+                    {log.status}
+                  </span>
+                  <span className="text-xs md:text-sm text-gray-500">
+                    {format(new Date(log.created_at), "HH:mm dd/MM/yyyy")}
+                  </span>
+                </div>
+                <p className="mt-1.5 md:mt-2 text-sm md:text-base text-gray-600">{log.note}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    );
   };
 
   if (isLoading) {
@@ -177,7 +265,7 @@ const OrderDetailPage: React.FC = () => {
         className="max-w-7xl mx-auto"
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8">
           <div className="flex items-center gap-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -188,24 +276,38 @@ const OrderDetailPage: React.FC = () => {
               <ArrowLeftIcon className="w-6 h-6 text-gray-600" />
             </motion.button>
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
-                Chi tiết đơn hàng #{order.order_code}
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
+                Chi tiết đơn hàng #{order?.order_code}
               </h1>
-              <p className="text-gray-600 mt-1">
-                {format(new Date(order.created_at), "HH:mm dd/MM/yyyy")}
+              <p className="text-sm md:text-base text-gray-600 mt-1">
+                {order?.created_at && format(new Date(order.created_at), "HH:mm dd/MM/yyyy")}
               </p>
             </div>
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate(`/admin/orders/${order.id}/status-logs`)}
-            className="flex items-center gap-2 px-4 py-2 bg-white text-orange-600 rounded-lg shadow-sm hover:bg-orange-50 transition-colors"
+            onClick={() => setShowStatusLogs(!showStatusLogs)}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-white text-orange-600 rounded-lg shadow-sm hover:bg-orange-50 transition-colors w-full md:w-auto"
           >
             <ClockIcon className="w-5 h-5" />
-            <span>Xem lịch sử trạng thái</span>
+            <span className="text-sm md:text-base">{showStatusLogs ? "Ẩn lịch sử" : "Xem lịch sử trạng thái"}</span>
           </motion.button>
         </div>
+
+        {/* Status Logs */}
+        <AnimatePresence>
+          {showStatusLogs && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6 overflow-hidden"
+            >
+              {renderStatusLogs()}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Thông tin khách hàng */}

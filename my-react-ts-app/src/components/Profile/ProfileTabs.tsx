@@ -6,6 +6,8 @@ import {
   MapPinIcon,
   Cog6ToothIcon,
   ChevronDownIcon,
+  UserIcon,
+  StarIcon,
 } from '@heroicons/react/24/outline';
 
 interface Tab {
@@ -23,6 +25,7 @@ const tabs: Tab[] = [
   { id: 'profile', name: 'Thông tin cá nhân', icon: UserCircleIcon },
   { id: 'orders', name: 'Đơn hàng', icon: ShoppingBagIcon },
   { id: 'addresses', name: 'Địa chỉ', icon: MapPinIcon },
+  { id: 'purchased', name: 'Sản phẩm đã mua', icon: StarIcon },
   { id: 'settings', name: 'Cài đặt', icon: Cog6ToothIcon },
 ];
 
