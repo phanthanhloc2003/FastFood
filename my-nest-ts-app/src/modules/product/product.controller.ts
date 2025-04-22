@@ -52,5 +52,4 @@ export class ProductController {
   async searchByName(@Query('name') name: string): Promise<Product[]> {
     return this.productService.searchByName(name);
   }
-
 }

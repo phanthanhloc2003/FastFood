@@ -14,6 +14,7 @@ import { CartModule } from './modules/cart/cart.module';
 import { AddressModule } from './modules/adrress/address.module';
 import { OrderModule } from './modules/order/order.module';
 import { AdminModule } from './modules/Admin/admin.module';
+import { ReviewModule } from './modules/review/review.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { AdminModule } from './modules/Admin/admin.module';
     CartModule,
     AddressModule,
     OrderModule,
-    AdminModule
+    AdminModule,
+    ReviewModule
   ],
   providers: [
     {

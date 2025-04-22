@@ -7,8 +7,9 @@ import { orderProviders } from "./providers/orderProviders";
 import { CartModule } from "../cart/cart.module";
 import { UsersControllerModule } from "../Users/users.module";
 import { NotificationModule } from "../notification/notification.module";
+import { ProductModule } from "../product/product.module";
 @Module({
-  imports: [DatabaseModule, AddressModule,CartModule,UsersControllerModule,NotificationModule],
+  imports: [DatabaseModule, AddressModule,CartModule,UsersControllerModule,NotificationModule, ProductModule],
   controllers: [OrderController],
   providers: [OrderService , ...orderProviders],
   exports: [OrderService],

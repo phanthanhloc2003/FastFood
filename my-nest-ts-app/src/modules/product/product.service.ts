@@ -143,5 +143,28 @@ export class ProductService {
       throw new InternalServerErrorException('Failed to retrieve product size');
     }
   }
+
+  async updateProductRating(productId, averageRating, totalReviews){
+    try {
+     return  await this.productRepository.update(productId, {
+        rating: averageRating,
+        total_reviews: totalReviews,
+      });
+    } catch (error) {
+      console.error("err", error)
+      throw error
+    }
+  }
+
+  // Lấy sản phẩm theo danh sách product_id
+  async findProductsByIds(productIds: number[]): Promise<Product[]> {
+    if (!productIds.length) return [];
+    return this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.images', 'images')
+      .leftJoinAndSelect('product.sizes', 'sizes')
+      .where('product.id IN (:...productIds)', { productIds })
+      .getMany();
+  }
   
 }

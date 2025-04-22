@@ -14,6 +14,8 @@ import { NotificationService } from '../notification/notification.service';
 import { OrderStatusLog } from './entity/order-status-log.entity';
 import { BadRequestException, ForbiddenException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { OrderHistory } from './entity/order-history.entity';
+import { Product } from '../product/entity/product.entity';
+import { ProductService } from '../product/product.service';
 @Injectable()
 export class OrderService {
   constructor(
@@ -21,6 +23,7 @@ export class OrderService {
     private cartService: CartService,
     private userService: UserService,
     private notificationService:NotificationService,
+    private productService:ProductService,
     @Inject('TABLE_REPOSITORY')
     private tableRepository: Repository<Table>,
     @Inject('ORDER_REPOSITORY')
@@ -366,5 +369,49 @@ export class OrderService {
     });
 
     return statusLogs;
+  }
+   async hasPurchasedProduct(userId: number, productId: number): Promise<boolean> {
+    const order = await this.orderRepository.findOne({
+      where: {
+        user: { id: userId },
+        status: 'Completed',
+        items: { product_size: { product: { id: productId } } },
+      },
+      relations: ['items', 'items.product_size', 'items.product_size.product'],
+    });
+    return !!order;
+  }
+
+
+
+  // Lấy danh sách product_id từ đơn hàng hoàn thành
+  private async getPurchasedProductIds(userId: number, daysAgo: number = 7): Promise<number[]> {
+   try {
+    const dateThreshold = new Date();
+    dateThreshold.setDate(dateThreshold.getDate() - daysAgo);
+
+    const result = await this.orderItemRepository
+    .createQueryBuilder('orderItem')
+    .innerJoinAndSelect('orderItem.order', 'order')
+    .innerJoinAndSelect('order.user', 'user')
+    .innerJoinAndSelect('orderItem.product_size', 'productSize')
+    .innerJoinAndSelect('productSize.product', 'product')
+    .select('product.id AS product_id')
+    .where('user.id = :userId', { userId })
+    .andWhere('order.status = :status', { status: 'Completed' })
+    .andWhere('order.updated_at >= :dateThreshold', { dateThreshold })
+    .distinctOn(['product.id'])
+    .getRawMany();
+
+  return result.map((row) => row.product_id);
+   } catch (error) {
+    console.error('êr', error);
+    throw error;
+   }
+  }
+  
+  async getPurchasedProducts(userId: number): Promise<Product[]> {
+    const productIds = await this.getPurchasedProductIds(userId);
+    return this.productService.findProductsByIds(productIds);
   }
 }

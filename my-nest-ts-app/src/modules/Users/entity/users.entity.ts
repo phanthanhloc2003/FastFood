@@ -4,7 +4,7 @@ import { Cart } from 'src/modules/cart/entity/cart.entity';
 import { Notification } from 'src/modules/notification/entity/notification.entity';
 import { OrderHistory } from 'src/modules/order/entity/order-history.entity';
 import { Order } from 'src/modules/order/entity/order.entity';
-import { ProductReview } from 'src/modules/product/entity/product-review.entity';
+import { ProductReview } from 'src/modules/review/entity/product-review.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,

@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 import { Product } from './product.entity';
-import { CartItem } from 'src/modules/cart/entity/cart-item.entity';
 import { OrderItem } from 'src/modules/order/entity/order-item.entity';
 
 

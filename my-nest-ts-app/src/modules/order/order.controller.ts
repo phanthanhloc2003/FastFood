@@ -58,4 +58,15 @@ export class OrderController {
   ): Promise<OrderStatusLog[]> {
     return this.orderService.getOrderStatusLogs(orderId);
   }
+
+  @Get('product/completed')
+  async getPurchasedProduct(@User() user:IUserNoPassWord) {
+    try {
+      return this.orderService.getPurchasedProducts(user.id)
+    } catch (error) {
+      console.error('err', error);
+      throw error;
+    }
+   
+  }
 }
