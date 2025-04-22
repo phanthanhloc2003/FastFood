@@ -1,16 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { StarIcon, ShoppingCartIcon, HeartIcon, FireIcon, SparklesIcon } from '@heroicons/react/24/solid';
-import { StarIcon as StarIconOutline } from '@heroicons/react/24/outline';
-import ProductGallery from '../components/Product/ProductGallery';
-import ProductReviews from '../components/Product/ProductReviews';
-import { productApi } from '../services/product';
-import { Product } from '../types/product';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  StarIcon,
+  ShoppingCartIcon,
+  HeartIcon,
+  FireIcon,
+  SparklesIcon,
+} from "@heroicons/react/24/solid";
+import { StarIcon as StarIconOutline } from "@heroicons/react/24/outline";
+import ProductGallery from "../components/Product/ProductGallery";
+import ProductReviews from "../components/Product/ProductReviews";
+import { productApi } from "../services/product";
+import { Product, ProductSize } from "../types/product";
+import { cartApi } from "../services/cart";
+import { addToCart } from "../store/slices/cartSlice";
+import { useDispatch } from "react-redux";
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [selectedSize, setSelectedSize] = useState<string>("s");
+  const dispatch = useDispatch();
+  const [selectedSize, setSelectedSize] = useState<ProductSize>();
   const [quantity, setQuantity] = useState<number>(1);
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [showAddedToCart, setShowAddedToCart] = useState<boolean>(false);
@@ -25,6 +35,7 @@ const ProductDetail: React.FC = () => {
         setIsLoading(true);
         try {
           const data = await productApi.getById(id);
+          setSelectedSize(data.sizes[0]);
           setData(data);
         } catch (error) {
           console.error("Lỗi khi tải dữ liệu sản phẩm:", error);
@@ -41,9 +52,9 @@ const ProductDetail: React.FC = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   // Hiệu ứng cho các phần tử con
@@ -54,9 +65,9 @@ const ProductDetail: React.FC = () => {
       opacity: 1,
       transition: {
         type: "spring",
-        stiffness: 100
-      }
-    }
+        stiffness: 100,
+      },
+    },
   };
 
   // Hiệu ứng cho ingredients
@@ -69,8 +80,8 @@ const ProductDetail: React.FC = () => {
         delay: i * 0.2,
         type: "spring",
         stiffness: 100,
-        damping: 10
-      }
+        damping: 10,
+      },
     }),
     hover: {
       scale: 1.05,
@@ -78,9 +89,9 @@ const ProductDetail: React.FC = () => {
       transition: {
         type: "spring",
         stiffness: 400,
-        damping: 10
-      }
-    }
+        damping: 10,
+      },
+    },
   };
 
   // Hiệu ứng cho sparkles
@@ -92,16 +103,16 @@ const ProductDetail: React.FC = () => {
       transition: {
         type: "spring",
         stiffness: 200,
-        damping: 10
-      }
+        damping: 10,
+      },
     },
     exit: {
       scale: 0,
       opacity: 0,
       transition: {
-        duration: 0.2
-      }
-    }
+        duration: 0.2,
+      },
+    },
   };
 
   // Hiệu ứng cho nút thêm vào giỏ hàng
@@ -112,17 +123,17 @@ const ProductDetail: React.FC = () => {
       transition: {
         type: "spring",
         stiffness: 400,
-        damping: 10
-      }
+        damping: 10,
+      },
     },
     tap: {
       scale: 0.95,
       transition: {
         type: "spring",
         stiffness: 400,
-        damping: 10
-      }
-    }
+        damping: 10,
+      },
+    },
   };
 
   // Hiệu ứng cho thông báo
@@ -135,30 +146,30 @@ const ProductDetail: React.FC = () => {
       transition: {
         type: "spring",
         stiffness: 300,
-        damping: 20
-      }
+        damping: 20,
+      },
     },
     exit: {
       opacity: 0,
       y: 50,
       scale: 0.8,
       transition: {
-        duration: 0.3
-      }
-    }
+        duration: 0.3,
+      },
+    },
   };
 
   // Hiệu ứng cho loading skeleton
   const skeletonVariants = {
     initial: { opacity: 0.5 },
-    animate: { 
+    animate: {
       opacity: [0.5, 0.8, 0.5],
       transition: {
         duration: 1.5,
         repeat: Infinity,
-        ease: "easeInOut"
-      }
-    }
+        ease: "easeInOut",
+      },
+    },
   };
 
   useEffect(() => {
@@ -170,9 +181,21 @@ const ProductDetail: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleAddToCart = () => {
-    if (data) {
-      console.log(`Thêm ${quantity} sản phẩm ${data.name} kích thước ${selectedSize} vào giỏ hàng`);
+  const handleAddToCart = async () => {
+    if (data && selectedSize) {
+      const cart = {
+        productSizeId: selectedSize.id,
+        quantity: quantity,
+      };
+      await cartApi.create(cart);
+      const itemToAdd = {
+        product: data,
+        quantity: quantity,
+        size: selectedSize.size,
+        sizeId: selectedSize.id,
+        price: selectedSize.price,
+      };
+      dispatch(addToCart(itemToAdd));
       setShowAddedToCart(true);
       setShowSparkles(true);
       setTimeout(() => {
@@ -185,7 +208,7 @@ const ProductDetail: React.FC = () => {
     }
   };
 
-  const handleSizeChange = (size: string) => {
+  const handleSizeChange = (size: ProductSize) => {
     setSelectedSize(size);
   };
 
@@ -201,7 +224,9 @@ const ProductDetail: React.FC = () => {
 
   const getSelectedPrice = () => {
     if (data) {
-      const selectedSizeObj = data.sizes.find(size => size.size === selectedSize);
+      const selectedSizeObj = data.sizes.find(
+        (size) => size.id === selectedSize?.id
+      );
       return selectedSizeObj ? selectedSizeObj.price : data.price;
     }
   };
@@ -212,7 +237,7 @@ const ProductDetail: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Skeleton cho phần hình ảnh */}
-          <motion.div 
+          <motion.div
             className="bg-white rounded-xl shadow-md overflow-hidden"
             variants={skeletonVariants}
             initial="initial"
@@ -223,7 +248,7 @@ const ProductDetail: React.FC = () => {
 
           {/* Skeleton cho phần thông tin sản phẩm */}
           <div className="flex flex-col space-y-6">
-            <motion.div 
+            <motion.div
               className="bg-white rounded-xl shadow-md p-6"
               variants={skeletonVariants}
               initial="initial"
@@ -232,26 +257,32 @@ const ProductDetail: React.FC = () => {
               <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
               <div className="flex space-x-1 mb-4">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="w-5 h-5 bg-gray-200 rounded-full"></div>
+                  <div
+                    key={i}
+                    className="w-5 h-5 bg-gray-200 rounded-full"
+                  ></div>
                 ))}
               </div>
               <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
               <div className="h-4 bg-gray-200 rounded w-5/6 mb-6"></div>
-              
+
               <div className="h-6 bg-gray-200 rounded w-1/3 mb-3"></div>
               <div className="flex space-x-3 mb-6">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="w-12 h-10 bg-gray-200 rounded-lg"></div>
+                  <div
+                    key={i}
+                    className="w-12 h-10 bg-gray-200 rounded-lg"
+                  ></div>
                 ))}
               </div>
-              
+
               <div className="h-6 bg-gray-200 rounded w-1/3 mb-3"></div>
               <div className="space-y-2 mb-6">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="h-4 bg-gray-200 rounded w-4/5"></div>
                 ))}
               </div>
-              
+
               <div className="flex justify-between items-center mb-6">
                 <div className="h-8 bg-gray-200 rounded w-1/3"></div>
                 <div className="flex space-x-2">
@@ -260,11 +291,11 @@ const ProductDetail: React.FC = () => {
                   <div className="w-8 h-8 bg-gray-200 rounded"></div>
                 </div>
               </div>
-              
+
               <div className="h-12 bg-gray-200 rounded w-full"></div>
             </motion.div>
-            
-            <motion.div 
+
+            <motion.div
               className="bg-white rounded-xl shadow-md p-6"
               variants={skeletonVariants}
               initial="initial"
@@ -277,8 +308,8 @@ const ProductDetail: React.FC = () => {
             </motion.div>
           </div>
         </div>
-        
-        <motion.div 
+
+        <motion.div
           className="mt-12 bg-white rounded-xl shadow-md p-6"
           variants={skeletonVariants}
           initial="initial"
@@ -314,7 +345,7 @@ const ProductDetail: React.FC = () => {
               {/* Phần hình ảnh */}
               <motion.div variants={itemVariants}>
                 <ProductGallery
-                  images={data.images.map(img => img.url)}
+                  images={data.images.map((img) => img.url)}
                   title={data.name}
                 />
               </motion.div>
@@ -394,7 +425,10 @@ const ProductDetail: React.FC = () => {
                           key={index}
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
-                          transition={{ delay: 0.3 + index * 0.1, type: "spring" }}
+                          transition={{
+                            delay: 0.3 + index * 0.1,
+                            type: "spring",
+                          }}
                         >
                           {index < data.rating ? (
                             <StarIcon className="w-5 h-5 text-yellow-400" />
@@ -424,18 +458,20 @@ const ProductDetail: React.FC = () => {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                   >
-                    <h3 className="text-lg font-medium text-gray-800 mb-2">Kích thước</h3>
+                    <h3 className="text-lg font-medium text-gray-800 mb-2">
+                      Kích thước
+                    </h3>
                     <div className="flex space-x-3">
                       {data.sizes.map((size) => (
                         <motion.button
                           key={size.id}
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => handleSizeChange(size.size)}
+                          onClick={() => handleSizeChange(size)}
                           className={`px-4 py-2 rounded-lg border ${
-                            selectedSize === size.size
-                              ? 'border-primary-main bg-primary-main text-white'
-                              : 'border-gray-300 text-gray-700 hover:border-primary-main'
+                            selectedSize?.id === size.id
+                              ? "border-primary-main bg-primary-main text-white"
+                              : "border-gray-300 text-gray-700 hover:border-primary-main"
                           }`}
                         >
                           {size.size.toUpperCase()}
@@ -489,7 +525,10 @@ const ProductDetail: React.FC = () => {
                       animate={{ scale: 1 }}
                       transition={{ delay: 0.9, type: "spring" }}
                     >
-                      {getSelectedPrice() ? Number(getSelectedPrice()).toLocaleString('vi-VN') : '0'} đ
+                      {getSelectedPrice()
+                        ? Number(getSelectedPrice()).toLocaleString("vi-VN")
+                        : "0"}{" "}
+                      đ
                     </motion.div>
                     <div className="flex items-center border border-gray-300 rounded-lg">
                       <motion.button
@@ -500,7 +539,9 @@ const ProductDetail: React.FC = () => {
                       >
                         -
                       </motion.button>
-                      <span className="px-3 py-1 border-x border-gray-300">{quantity}</span>
+                      <span className="px-3 py-1 border-x border-gray-300">
+                        {quantity}
+                      </span>
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
@@ -530,8 +571,12 @@ const ProductDetail: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1 }}
                 >
-                  <h2 className="text-xl font-bold text-gray-800 mb-4">Thông tin danh mục</h2>
-                  <h3 className="text-lg font-medium text-gray-700 mb-2">{data.categoryId.name}</h3>
+                  <h2 className="text-xl font-bold text-gray-800 mb-4">
+                    Thông tin danh mục
+                  </h2>
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">
+                    {data.categoryId.name}
+                  </h3>
                   <p className="text-gray-600">{data.categoryId.description}</p>
                 </motion.div>
               </motion.div>
@@ -546,7 +591,9 @@ const ProductDetail: React.FC = () => {
               transition={{ delay: 1.2 }}
             >
               <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Đánh giá sản phẩm</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-4">
+                  Đánh giá sản phẩm
+                </h2>
                 {data.total_reviews > 0 ? (
                   <ProductReviews reviews={[]} />
                 ) : (
@@ -577,8 +624,12 @@ const ProductDetail: React.FC = () => {
       ) : (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Không tìm thấy sản phẩm</h2>
-            <p className="text-gray-600">Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              Không tìm thấy sản phẩm
+            </h2>
+            <p className="text-gray-600">
+              Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.
+            </p>
           </div>
         </div>
       )}
@@ -586,4 +637,4 @@ const ProductDetail: React.FC = () => {
   );
 };
 
-export default ProductDetail; 
+export default ProductDetail;

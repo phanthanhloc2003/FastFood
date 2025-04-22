@@ -67,24 +67,23 @@ const Payment: React.FC = () => {
   const handlePayment = async () => {
     try {
       setIsProcessing(true);
-      // const response = await orderApi.create({
-      //   deliveryType,
-      //   addressId: selectedAddress?.id,
-      //   tableId,
-      //   paymentMethod: selectedMethod as OrderPaymentMethod,
-      // });
+      const response = await orderApi.create({
+        deliveryType,
+        addressId: selectedAddress?.id,
+        tableId,
+        paymentMethod: selectedMethod as OrderPaymentMethod,
+      });
 
-      // if (response) {
-      //   dispatch(clearCart());
-      //   setPaymentStatus("Paid");
-      //   localStorage.removeItem("orderData");
-      //   setTimeout(() => {
-      //     navigate("/orders");
-      //   }, 2000);
-      // } else {
-      //   setPaymentStatus("Failed");
-      // }
-      console.log("sđ")
+      if (response) {
+        dispatch(clearCart());
+        setPaymentStatus("Paid");
+        localStorage.removeItem("orderData");
+        setTimeout(() => {
+          navigate("/orders");
+        }, 2000);
+      } else {
+        setPaymentStatus("Failed");
+      }
     } catch (error) {
       setPaymentStatus("Failed");
     } finally {
