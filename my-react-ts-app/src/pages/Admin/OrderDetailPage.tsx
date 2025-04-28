@@ -31,6 +31,7 @@ const OrderDetailPage: React.FC = () => {
   const [cancelReason, setCancelReason] = useState("");
   const [showStatusLogs, setShowStatusLogs] = useState(false);
   const [statusLogs, setStatusLogs] = useState<any[]>([]);
+  const [load , setLoad] = useState(false)
 
   useEffect(() => {
     const fetchOrderDetail = async () => {
@@ -40,22 +41,10 @@ const OrderDetailPage: React.FC = () => {
           const data = await orderApi.getOrderDetails(id);
           if (data) {
             setOrder(data);
+
+            const statusLog = await orderApi.getOrderStatusLogs(data.id)
             // Giả lập dữ liệu lịch sử trạng thái
-            setStatusLogs([
-              {
-                id: 1,
-                status: "Pending",
-                note: "Đơn hàng được tạo",
-                created_at: data.created_at,
-              },
-              {
-                id: 2,
-                status: data.status,
-                note: data.status === "Completed" ? "Đơn hàng đã được xác nhận" : 
-                      data.status === "Cancelled" ? "Đơn hàng đã bị hủy" : "Đang chờ xử lý",
-                created_at: data.updated_at || data.created_at,
-              }
-            ]);
+            setStatusLogs(statusLog);
           }
         }
       } catch (error) {
@@ -77,6 +66,7 @@ const OrderDetailPage: React.FC = () => {
       setOrder({ ...order, status: "Confirmed" });
       setNotificationMessage("Xác nhận đơn hàng thành công!");
       setShowNotification(true);
+      setLoad(!load)
       setTimeout(() => setShowNotification(false), 3000);
     } catch (error) {
       console.error("Lỗi khi xác nhận đơn hàng:", error);
@@ -98,6 +88,7 @@ const OrderDetailPage: React.FC = () => {
       setShowNotification(true);
       setShowCancelModal(false);
       setCancelReason("");
+      setLoad(!load)
       setTimeout(() => setShowNotification(false), 3000);
       navigate('/admin/order')
     } catch (error) {
@@ -171,7 +162,7 @@ const OrderDetailPage: React.FC = () => {
                     {format(new Date(log.created_at), "HH:mm dd/MM/yyyy")}
                   </span>
                 </div>
-                <p className="mt-1.5 md:mt-2 text-sm md:text-base text-gray-600">{log.note}</p>
+                <p className="mt-1.5 md:mt-2 text-sm md:text-base text-gray-600">{log.message}</p>
               </div>
             </motion.div>
           ))}
