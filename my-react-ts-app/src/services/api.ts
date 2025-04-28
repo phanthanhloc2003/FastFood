@@ -18,7 +18,6 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     else{
-      console.log("sds",token)
     }
     return config;
   },

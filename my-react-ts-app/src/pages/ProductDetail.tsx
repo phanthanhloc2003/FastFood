@@ -10,12 +10,13 @@ import {
 } from "@heroicons/react/24/solid";
 import { StarIcon as StarIconOutline } from "@heroicons/react/24/outline";
 import ProductGallery from "../components/Product/ProductGallery";
-import ProductReviews from "../components/Product/ProductReviews";
+import ProductReviews, { Review } from "../components/Product/ProductReviews";
 import { productApi } from "../services/product";
 import { Product, ProductSize } from "../types/product";
 import { cartApi } from "../services/cart";
 import { addToCart } from "../store/slices/cartSlice";
 import { useDispatch } from "react-redux";
+import { ratingApi } from "../services/rating";
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,12 +29,15 @@ const ProductDetail: React.FC = () => {
   const [showSparkles, setShowSparkles] = useState<boolean>(false);
   const [data, setData] = useState<Product>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [rating , setRating] = useState<Review[]>([]);
 
   useEffect(() => {
     const feactDataProductOne = async () => {
       if (id) {
         setIsLoading(true);
         try {
+          const rating = await ratingApi.get(id);
+          setRating(rating)
           const data = await productApi.getById(id);
           setSelectedSize(data.sizes[0]);
           setData(data);
@@ -594,8 +598,8 @@ const ProductDetail: React.FC = () => {
                 <h2 className="text-xl font-bold text-gray-800 mb-4">
                   Đánh giá sản phẩm
                 </h2>
-                {data.total_reviews > 0 ? (
-                  <ProductReviews reviews={[]} />
+                {rating?.length > 0 ? (
+                  <ProductReviews reviews={rating} />
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     Chưa có đánh giá nào cho sản phẩm này

@@ -1,8 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { StarIcon } from "@heroicons/react/24/solid";
+import { UserIcon } from "@heroicons/react/24/outline";
 
-interface Review {
+export interface Review {
   id: number;
   user: {
     name: string;
@@ -35,11 +36,18 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ reviews }) => {
             className="bg-white p-6 rounded-lg shadow-sm"
           >
             <div className="flex items-center mb-4">
-              <img
-                src={review.user.avatar}
-                alt={review.user.name}
-                className="w-12 h-12 rounded-full mr-4"
-              />
+
+            {review.user.avatar ? (
+                      <img
+                        className="h-16 w-16 rounded-full object-cover border-2 border-orange-200"
+                        src={review.user.avatar}
+                        alt={review.user.name}
+                      />
+                    ) : (
+                      <div className="h-16 w-16 rounded-full bg-orange-100 flex items-center justify-center border-2 border-orange-200">
+                        <UserIcon className="h-8 w-8 text-orange-500" />
+                      </div>
+                    )}
               <div>
                 <h3 className="font-semibold">{review.user.name}</h3>
                 <div className="flex items-center">
