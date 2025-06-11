@@ -9,6 +9,7 @@ import AddToCartAnimation from "../components/AddToCartAnimation";
 import { cartApi } from "../services/cart";
 import { RootState } from "../store/store";
 import { useNavigate,useLocation } from "react-router-dom";
+import ChatBox from "../components/ChatBox";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -394,6 +395,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      <ChatBox />
       <AddToCartAnimation
         isVisible={showAddToCart}
         productName={addedProduct?.name || ""}
