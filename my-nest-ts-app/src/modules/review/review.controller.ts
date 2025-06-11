@@ -15,7 +15,7 @@ import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ProductReview } from './entity/product-review.entity';
 import { IUserNoPassWord } from '../Users/interfaces/user.interface';
-import { User } from 'src/common/decorators/public-router.decorator';
+import { PublicRouter, User } from 'src/common/decorators/public-router.decorator';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
@@ -60,7 +60,7 @@ export class ReviewController {
         return this.reviewService.deleteReview(userId,reviewId, userRole);
     }
   }
-
+  @PublicRouter()
   @Get('products/:productId/reviews')
   async getProductReviews(
     @Param('productId', ParseIntPipe) productId: number,
@@ -69,6 +69,7 @@ export class ReviewController {
   }
 
   //   // Lấy chi tiết đánh giá
+   
   @Get('reviews/:id')
   async getReviewById(
     @Param('id', ParseIntPipe) reviewId: number,
