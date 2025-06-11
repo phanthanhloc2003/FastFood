@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/store';
+import AdminChatBox from '../AdminChatBox';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -305,6 +306,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </motion.div>
         </main>
       </div>
+
+      {/* Add AdminChatBox */}
+      <AdminChatBox />
     </div>
   );
 };
